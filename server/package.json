@@ -1,5 +1,5 @@
 {
-  "name": "zhidu-server",
+  "name": "@zhidu/server",
   "private": true,
   "type": "module",
   "scripts": {
@@ -7,6 +7,6 @@
     "start": "bun src/index.ts"
   },
   "dependencies": {
-    "@dangao/bun-server": "latest"
+    "@dangao/bun-server": "2.0.3"
   }
 }

@@ -1,0 +1,17 @@
+{
+  "name": "@zhidu/monorepo",
+  "private": true,
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "sh -c 'bun run --filter @zhidu/server dev & SERVER_PID=$!; bun run --filter @zhidu/web dev; EXIT_CODE=$?; kill ${SERVER_PID}; wait ${SERVER_PID} 2>/dev/null; exit ${EXIT_CODE}'",
+    "dev:web": "bun run --filter @zhidu/web dev",
+    "dev:server": "bun run --filter @zhidu/server dev",
+    "start": "sh -c 'bun run --filter @zhidu/server start & SERVER_PID=$!; bun run --filter @zhidu/web preview -- --host 0.0.0.0 --port ${WEB_PORT:-8080}; EXIT_CODE=$?; kill ${SERVER_PID}; wait ${SERVER_PID} 2>/dev/null; exit ${EXIT_CODE}'",
+    "build": "bun run --filter @zhidu/web build",
+    "build:web": "bun run --filter @zhidu/web build",
+    "lint:web": "bun run --filter @zhidu/web lint"
+  }
+}

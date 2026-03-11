@@ -1,0 +1,16 @@
+---
+description: Route action requests through auto-skills first
+alwaysApply: true
+---
+
+# Auto-Skills First
+
+对任何有执行意图的用户请求，先进行 `auto-skills` 路由，再进入实际执行。
+
+必须遵循的路由顺序：
+1. Project-local skills（当前项目）
+2. User-global skills（用户目录）
+3. `find-skills` 发现（仅在前两者不足时）
+
+跳过条件：
+- 仅当用户明确要求“不要查 skill / skip skills”时可跳过。
