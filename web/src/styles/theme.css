@@ -1,0 +1,56 @@
+/* 智读 · 原型 Dark Academic 主题（与 prototype/index.html 一致） */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap");
+
+:root {
+  --bg: #0e0c0b;
+  --s1: #1a1714;
+  --s2: #221f1b;
+  --s3: #2c2924;
+  --s4: #363028;
+  --border: #3d3730;
+  --border2: #524c44;
+  --gold: #d4a843;
+  --gold-d: #a07b25;
+  --gold-l: #f0cc7a;
+  --gold-bg: rgba(212, 168, 67, 0.08);
+  --blue: #4e7faa;
+  --blue-l: #7aaad4;
+  --t1: #ede6dc;
+  --t2: #b8aea0;
+  --t3: #7a7268;
+  --ok: #5b9e73;
+  --err: #c4524a;
+  --r: 6px;
+  --r2: 10px;
+  --r3: 14px;
+  --sidebar-w: 268px;
+  --header-h: 52px;
+}
+
+body {
+  font-family: "Source Sans 3", system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--t1);
+  background: var(--bg);
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 99px;
+}

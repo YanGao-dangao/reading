@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PM Flow 产品经理完整流程图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#faf9f7; --surface:#fff; --border:#e5e0d8;
+  --accent:#b45309; --accent-bg:rgba(180,83,9,.06);
+  --blue:#1d4ed8; --blue-bg:rgba(29,78,216,.06);
+  --green:#15803d; --green-bg:rgba(21,128,61,.06);
+  --purple:#7c3aed; --purple-bg:rgba(124,58,237,.06);
+  --red:#dc2626; --red-bg:rgba(220,38,38,.06);
+  --t1:#1c1917; --t2:#57534e; --t3:#a8a29e;
+  --font-title:'Noto Serif SC',serif; --font-body:'Noto Sans SC',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-body);background:var(--bg);color:var(--t1);line-height:1.7;overflow-x:hidden}
+.container{max-width:1100px;margin:0 auto;padding:40px 32px 60px}
+h1{font-family:var(--font-title);font-size:28px;font-weight:700;text-align:center;margin-bottom:6px}
+h1 span{color:var(--accent)}
+h2{font-family:var(--font-title);font-size:20px;font-weight:600;margin:44px 0 16px;padding-bottom:8px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px}
+.subtitle{text-align:center;color:var(--t3);font-size:14px;margin-bottom:44px;font-weight:300}
+code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:3px;font-size:.9em;font-family:monospace}
+
+.phase-label{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:99px;margin-bottom:12px}
+.phase-label.trigger{background:var(--accent-bg);color:var(--accent)}
+.phase-label.analyze{background:var(--blue-bg);color:var(--blue)}
+.phase-label.execute{background:var(--green-bg);color:var(--green)}
+.phase-label.verify{background:var(--purple-bg);color:var(--purple)}
+
+.step-row{display:flex;gap:14px;margin-bottom:10px}
+.step-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;transition:all .2s;display:flex;flex-direction:column;gap:6px}
+.step-card:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(0,0,0,.06);transform:translateY(-1px)}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0}
+.step-num.a{background:var(--accent-bg);color:var(--accent)}
+.step-num.b{background:var(--blue-bg);color:var(--blue)}
+.step-num.g{background:var(--green-bg);color:var(--green)}
+.step-num.p{background:var(--purple-bg);color:var(--purple)}
+.step-header{display:flex;align-items:center;gap:8px}
+.step-title{font-weight:600;font-size:14px}
+.step-desc{font-size:12.5px;color:var(--t2);line-height:1.6}
+.step-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto;padding-top:6px}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600}
+.tag.skill{background:#fef3c7;color:#92400e}
+.tag.output{background:#e0e7ff;color:#3730a3}
+.tag.gate{background:var(--red-bg);color:var(--red)}
+.tag.expert{background:#f0fdf4;color:#166534}
+
+.connector{display:flex;align-items:center;justify-content:center;padding:6px 0;color:var(--t3)}
+.connector svg{display:block}
+.connector-text{font-size:11px;color:var(--t3);font-weight:500;margin-left:8px}
+
+.gate-bar{background:var(--red-bg);border:1.5px dashed rgba(220,38,38,.3);border-radius:10px;padding:10px 16px;margin:6px 0 14px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--red)}
+.gate-bar strong{font-weight:700}
+.gate-icon{width:28px;height:28px;background:rgba(220,38,38,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:16px 20px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;margin-top:28px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2)}
+.legend-color{width:12px;height:12px;border-radius:3px}
+
+.detail-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;display:grid;grid-template-columns:48px 1fr;gap:16px;transition:border-color .2s}
+.detail-card:hover{border-color:var(--accent)}
+.detail-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.detail-icon.trigger{background:var(--accent-bg)}
+.detail-icon.analyze{background:var(--blue-bg)}
+.detail-icon.execute{background:var(--green-bg)}
+.detail-icon.verify{background:var(--purple-bg)}
+.detail-title{font-weight:700;font-size:15px;margin-bottom:4px}
+.detail-body{font-size:13px;color:var(--t2);line-height:1.7}
+.detail-body strong{color:var(--t1);font-weight:600}
+.detail-body ul{padding-left:18px;margin:6px 0}
+.detail-body li{margin-bottom:4px}
+.detail-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+.skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.skill-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;transition:all .2s}
+.skill-card:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(0,0,0,.06)}
+.skill-card .step-desc{margin-top:4px}
+
+.file-tree{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px 24px;margin-top:16px;font-family:monospace;font-size:13px;line-height:2;color:var(--t2)}
+.file-tree strong{color:var(--t1);font-weight:600}
+
+@media(max-width:768px){.container{padding:24px 16px}.step-row{flex-direction:column}.detail-card{grid-template-columns:1fr}.skills-grid{grid-template-columns:1fr}h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>PM <span>Flow</span> 产品经理完整流程</h1>
+<p class="subtitle">从一句话需求到可交互原型 + 自动化验收的端到端工作流</p>
+
+<!-- ════════════════════ FLOW CHART ════════════════════ -->
+
+<div class="phase">
+  <span class="phase-label trigger">PHASE 0 · 触发与澄清</span>
+  <div class="step-row">
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-num a">0</span>
+        <span class="step-title">触发 PM 流程 → P0 澄清</span>
+      </div>
+      <div class="step-desc">用户通过 <code>/pm-flow</code>、<code>一句话需求:</code>、<code>按 PM 流程</code> 等方式触发。AI 读取规则和技能后，<strong>只输出 P0 澄清问题清单</strong>（五维度），不给方案不写代码。</div>
+      <div class="step-tags">
+        <span class="tag skill">product-manager</span>
+        <span class="tag output">P0 澄清问题清单</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="connector">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  <span class="connector-text">用户回复澄清答案</span>
+</div>
+
+<div class="phase">
+  <span class="phase-label analyze">PHASE 1 · 分析阶段（Step 1–8）</span>
+  <div class="step-row">
+    <div class="step-card">
+      <div class="step-header"><span class="step-num b">1</span><span class="step-title">产品核心</span></div>
+      <div class="step-desc">价值主张、业务目标、北极星指标、产品宣言</div>
+      <div class="step-tags"><span class="tag skill">product-manager</span></div>
+    </div>
+    <div class="step-card">
+      <div class="step-header"><span class="step-num b">2</span><span class="step-title">成功标准</span></div>
+      <div class="step-desc">功能目的、1-3 条可量化标准、过程指标</div>
+      <div class="step-tags"><span class="tag skill">product-manager</span></div>
+    </div>
+    <div class="step-card">
+      <div class="step-header"><span class="step-num b">3</span><span class="step-title">用户拆解</span></div>
+      <div class="step-desc">用户对象表、场景故事板、认知负担评估</div>
+      <div class="step-tags"><span class="tag skill">product-manager</span></div>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="step-card" style="border-color:rgba(220,38,38,.3)">
+      <div class="step-header"><span class="step-num b">4</span><span class="step-title">反证必要性</span></div>
+      <div class="step-desc">不做的影响、MVP 范围、竞品对比、风险与错误后路</div>
+      <div class="step-tags"><span class="tag gate">关卡：不必要则停止</span><span class="tag skill">product-manager</span></div>
+    </div>
+    <div class="step-card">
+      <div class="step-header"><span class="step-num b">5</span><span class="step-title">方案空间</span></div>
+      <div class="step-desc">约束清单 + 实现维度（入口/流程/IA/交互/数据/权限/埋点）+ 技术风险</div>
+      <div class="step-tags"><span class="tag skill">product-manager</span></div>
+    </div>
+  </div>
+  <div class="step-row">
+    <div class="step-card" style="border-color:rgba(21,128,61,.3)">
+      <div class="step-header"><span class="step-num b">6</span><span class="step-title">专家评审</span></div>
+      <div class="step-desc">整理 Step 1-5 结论，调用 product-expert 做独立评审：逻辑漏洞、遗漏场景、可扩展性</div>
+      <div class="step-tags"><span class="tag expert">product-expert</span><span class="tag output">评审意见</span></div>
+    </div>
+    <div class="step-card">
+      <div class="step-header"><span class="step-num b">7</span><span class="step-title">多方案对比</span></div>
+      <div class="step-desc">2-3 个方案 + 每方案 Mermaid 流程图 + 对比表 + 推荐倾向 + 反思 pass</div>
+      <div class="step-tags"><span class="tag skill">product-manager</span><span class="tag output">Mermaid 流程图</span><span class="tag output">对比表</span></div>
+    </div>
+  </div>
+  <div class="gate-bar">
+    <div class="gate-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <strong>Step 8 · 用户确认关卡</strong>&nbsp;—&nbsp;最终方案 + 假设与待澄清 + 本期不做 → 用户必须明确同意后才进入执行
+  </div>
+</div>
+
+<div class="connector">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  <span class="connector-text">用户确认方案</span>
+</div>
+
+<div class="phase">
+  <span class="phase-label execute">PHASE 2 · 执行阶段（Step 9–10）</span>
+  <div class="step-row">
+    <div class="step-card">
+      <div class="step-header"><span class="step-num g">9</span><span class="step-title">文档输出</span></div>
+      <div class="step-desc">产出 01-需求卡 → 02-需求方案 → 03-功能清单与验收标准（含八步自检 + product-expert 专项审查）</div>
+      <div class="step-tags">
+        <span class="tag skill">product-manager</span>
+        <span class="tag expert">product-expert</span>
+        <span class="tag output">01-需求卡.md</span>
+        <span class="tag output">02-需求方案.md</span>
+        <span class="tag output">03-功能清单.md</span>
+      </div>
+    </div>
+    <div class="step-card">
+      <div class="step-header"><span class="step-num g">10</span><span class="step-title">可交互原型</span></div>
+      <div class="step-desc">以 03 功能清单为唯一依据，按 pm-prototype 工程规范生成单文件 HTML；交付时更新 03 中「原型实现情况对照表」</div>
+      <div class="step-tags">
+        <span class="tag skill">pm-prototype</span>
+        <span class="tag output">prototype/index.html</span>
+        <span class="tag output">03 对照表</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="connector">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  <span class="connector-text">原型交付完成</span>
+</div>
+
+<div class="phase">
+  <span class="phase-label verify">PHASE 3 · 验收阶段（Step 11–13）</span>
+  <div class="step-row">
+    <div class="step-card">
+      <div class="step-header"><span class="step-num p">11</span><span class="step-title">生成验收脚本</span></div>
+      <div class="step-desc">Playwright 脚本（TC 与 03 一一对应）+ 运行说明 README</div>
+      <div class="step-tags"><span class="tag output">acceptance.spec.mjs</span><span class="tag output">README.md</span></div>
+    </div>
+    <div class="step-card">
+      <div class="step-header"><span class="step-num p">12</span><span class="step-title">执行自动化验收</span></div>
+      <div class="step-desc">前置检查（环境/入口/映射/证据/范围）→ 用户确认 → 运行 → 通过/失败列表 + 截图</div>
+      <div class="step-tags"><span class="tag gate">需用户确认执行</span></div>
+    </div>
+    <div class="step-card">
+      <div class="step-header"><span class="step-num p">13</span><span class="step-title">问题交接</span></div>
+      <div class="step-desc">失败项 → 验收问题表（TC + 功能项 + 复现步骤 + 严重程度）→ 交研发修复 → 回归验收</div>
+      <div class="step-tags"><span class="tag output">验收问题表.md</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-color" style="background:#fef3c7"></div> Skill 技能</div>
+  <div class="legend-item"><div class="legend-color" style="background:#e0e7ff"></div> 交付产物</div>
+  <div class="legend-item"><div class="legend-color" style="background:var(--red-bg)"></div> 关卡 / 确认点</div>
+  <div class="legend-item"><div class="legend-color" style="background:#f0fdf4"></div> 专家评审</div>
+</div>
+
+<!-- ════════════════════ DETAIL SECTION ════════════════════ -->
+
+<h2>各阶段详解</h2>
+
+<div class="detail-card">
+  <div class="detail-icon trigger">🎯</div>
+  <div>
+    <div class="detail-title">Phase 0 · 触发与 P0 澄清</div>
+    <div class="detail-body">
+      <strong>作用</strong>：把用户模糊的一句话想法，拆解为结构化的需求输入。AI 不急于给方案，而是先问清楚五个维度：
+      <ul>
+        <li><strong>用户与场景</strong> — 谁在什么设备、什么时机下使用？</li>
+        <li><strong>对象与范围</strong> — 输入格式、数据来源、品类、是否持久化？</li>
+        <li><strong>主路径</strong> — 端到端操作流是否理解正确？</li>
+        <li><strong>规则与边界</strong> — LLM 选型、风格定义、字数、MVP 边界？</li>
+        <li><strong>验收口径</strong> — 怎样算「做完了」、性能预期、优先级？</li>
+      </ul>
+      <strong>为什么不跳过</strong>：后续所有分析和方案都建立在这些输入上，澄清不充分 = 方案跑偏。
+    </div>
+    <div class="detail-meta">
+      <span class="tag skill">product-manager</span>
+      <span class="tag output">P0 澄清问题清单</span>
+    </div>
+  </div>
+</div>
+
+<div class="detail-card">
+  <div class="detail-icon analyze">🔬</div>
+  <div>
+    <div class="detail-title">Phase 1 · 分析阶段（Step 1–8）</div>
+    <div class="detail-body">
+      <strong>作用</strong>：从产品核心到方案决策的完整推导链，确保「方案有依据、决策有对比、风险有预判」。
+      <ul>
+        <li><strong>Step 1-3（建立认知）</strong>：核心价值 → 成功标准 → 用户故事，形成分析底座</li>
+        <li><strong>Step 4（关卡）</strong>：反证必要性 — 不做的影响？替代方案？若不必要则停止，不浪费后续步骤</li>
+        <li><strong>Step 5</strong>：在约束内拆解实现维度，形成方案空间</li>
+        <li><strong>Step 6（专家评审）</strong>：调用 <strong>product-expert</strong> 做独立评审，弥补主分析的盲点（逻辑漏洞、遗漏边缘场景、可扩展性）</li>
+        <li><strong>Step 7</strong>：基于专家建议输出 2-3 个方案，每方案配 <strong>Mermaid 流程图 + 对比表</strong>，附推荐倾向和反思 pass</li>
+        <li><strong>Step 8（关卡）</strong>：最终方案 + 假设 + 本期不做，<strong>用户必须确认后才进入执行</strong></li>
+      </ul>
+    </div>
+    <div class="detail-meta">
+      <span class="tag skill">product-manager</span>
+      <span class="tag expert">product-expert</span>
+      <span class="tag output">方案对比表</span>
+      <span class="tag output">Mermaid 流程图</span>
+    </div>
+  </div>
+</div>
+
+<div class="detail-card">
+  <div class="detail-icon execute">📦</div>
+  <div>
+    <div class="detail-title">Phase 2 · 执行阶段（Step 9–10）</div>
+    <div class="detail-body">
+      <strong>作用</strong>：将确认方案转化为研发可执行的标准文档 + 可点击原型。
+      <ul>
+        <li><strong>Step 9 文档输出</strong>：<br>
+          &nbsp;&nbsp;• <strong>01-需求卡</strong>：一句话需求 + 背景 + 用户 + 主路径 + 优先级（高层全局视角）<br>
+          &nbsp;&nbsp;• <strong>02-需求方案</strong>：架构图 + 模块设计 + 技术选型 + 页面结构 + 流程图（研发落地视角）<br>
+          &nbsp;&nbsp;• <strong>03-功能清单与验收标准</strong>：功能项（F01-FNN）+ 验收用例（TC）+ 自检表 + 关联依赖<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;03 的质量由<strong>八步防遗漏流程</strong>保证：<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;① 方案文档扫描 → ② 流程图节点映射 → ③ 隐性功能检查 → ④ 原型对照<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;→ ⑤ CRUD 与主对象过一遍 → ⑥ 关联需求梳理 → ⑦ 必检项自检 → ⑧ <strong>product-expert 专项审查</strong>
+        </li>
+        <li><strong>Step 10 可交互原型</strong>：<br>
+          &nbsp;&nbsp;• 读取 <strong>pm-prototype</strong> 技能，按工程规范生成单文件 HTML<br>
+          &nbsp;&nbsp;• <strong>唯一依据是 03</strong>，逐条实现 P0 功能，P1 做占位<br>
+          &nbsp;&nbsp;• 从 reference.md 选设计系统（Dark Academic / Clean Light / Warm Neutral）<br>
+          &nbsp;&nbsp;• 交付时更新 03 中的「原型实现情况对照表」
+        </li>
+      </ul>
+    </div>
+    <div class="detail-meta">
+      <span class="tag skill">product-manager</span>
+      <span class="tag expert">product-expert（03审查）</span>
+      <span class="tag skill">pm-prototype</span>
+      <span class="tag output">01-需求卡.md</span>
+      <span class="tag output">02-需求方案.md</span>
+      <span class="tag output">03-功能清单.md</span>
+      <span class="tag output">prototype/index.html</span>
+    </div>
+  </div>
+</div>
+
+<div class="detail-card">
+  <div class="detail-icon verify">✅</div>
+  <div>
+    <div class="detail-title">Phase 3 · 验收阶段（Step 11–13）</div>
+    <div class="detail-body">
+      <strong>作用</strong>：自动化验证原型是否覆盖所有 P0 功能，失败项形成问题表交给研发，形成闭环。
+      <ul>
+        <li><strong>Step 11</strong>：生成 Playwright 验收脚本（TC 与 03 一一对应）+ README 运行说明</li>
+        <li><strong>Step 12</strong>：前置检查（环境 / 入口 / 映射 / 证据路径 / 范围）→ 用户确认 → 执行 → 收集结果</li>
+        <li><strong>Step 13</strong>：<br>
+          &nbsp;&nbsp;全通过 → 验收通过摘要<br>
+          &nbsp;&nbsp;有失败 → <strong>验收问题表</strong>（TC ID + 功能项 + 预期/实际 + 严重程度 + 复现步骤）→ 交研发修复 → 回归验收
+        </li>
+      </ul>
+    </div>
+    <div class="detail-meta">
+      <span class="tag output">acceptance.spec.mjs</span>
+      <span class="tag output">验收 README.md</span>
+      <span class="tag output">验收问题表.md</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ SKILLS ════════════════════ -->
+
+<h2>Skills 技能总览</h2>
+
+<div class="skills-grid">
+  <div class="skill-card" style="border-left:4px solid var(--accent)">
+    <div class="step-header"><span class="step-title">product-manager</span></div>
+    <div class="step-desc">
+      <strong>路径</strong>：.cursor/pm-flow-skills/product-manager/<br>
+      <strong>覆盖阶段</strong>：Phase 0 → Phase 2（全程主控）<br>
+      <strong>核心能力</strong>：P0 澄清 → Step 1-8 分析链 → 方案文档模板 → 功能清单八步防遗漏 → 输出字数控制 → 正反例约束 → 检查清单
+    </div>
+  </div>
+  <div class="skill-card" style="border-left:4px solid var(--green)">
+    <div class="step-header"><span class="step-title">product-expert</span></div>
+    <div class="step-desc">
+      <strong>路径</strong>：.cursor/pm-flow-skills/product-expert/<br>
+      <strong>覆盖阶段</strong>：Step 6（方案评审）+ Step 9（03 功能清单专项审查）<br>
+      <strong>核心能力</strong>：独立评审视角，检查流程合规 / 产出完整性 / 逻辑一致性 / CRUD 遗漏 / TC 映射。只输出问题不输出通过项，每条 ≤30 字，总输出 ≤400 字
+    </div>
+  </div>
+  <div class="skill-card" style="border-left:4px solid var(--blue)">
+    <div class="step-header"><span class="step-title">pm-prototype</span></div>
+    <div class="step-desc">
+      <strong>路径</strong>：.cursor/pm-flow-skills/pm-prototype/<br>
+      <strong>覆盖阶段</strong>：Step 10（可交互原型）<br>
+      <strong>核心能力</strong>：单文件 HTML 工程规范 → 三套设计系统（Dark Academic / Clean Light / Warm Neutral）→ 屏幕切换系统 → 6 种通用组件模板（Toast / Skeleton / 空状态 / Modal / 侧栏 / Tab）→ Mock 数据规范 → 流式输出 → 界面效果自检清单
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ FILE TREE ════════════════════ -->
+
+<h2>交付产物文件树</h2>
+
+<div class="file-tree">
+原型/模块/<strong>&lt;模块名&gt;</strong>/<br>
+├── <strong>01-需求卡-&lt;模块名&gt;.md</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Phase 2 · Step 9<br>
+├── <strong>02-需求方案-&lt;模块名&gt;.md</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Phase 2 · Step 9<br>
+├── <strong>03-功能清单与验收标准-&lt;模块名&gt;.md</strong> ← Phase 2 · Step 9（含对照表、自检表）<br>
+├── prototype/<br>
+│&nbsp;&nbsp;&nbsp;└── <strong>index.html</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Phase 2 · Step 10<br>
+└── 验收/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── <strong>acceptance.spec.mjs</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Phase 3 · Step 11<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── <strong>README.md</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ← Phase 3 · Step 11<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── <strong>验收问题表-&lt;模块名&gt;.md</strong>&nbsp;&nbsp;&nbsp;&nbsp; ← Phase 3 · Step 13（如有失败项）
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智读 · ZhiDu — 图书知识快学</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --bg:      #0E0C0B;
+  --s1:      #1A1714;
+  --s2:      #221F1B;
+  --s3:      #2C2924;
+  --s4:      #363028;
+  --border:  #3D3730;
+  --border2: #524C44;
+  --gold:    #D4A843;
+  --gold-d:  #A07B25;
+  --gold-l:  #F0CC7A;
+  --gold-bg: rgba(212,168,67,.08);
+  --blue:    #4E7FAA;
+  --blue-l:  #7AAAD4;
+  --t1:      #EDE6DC;
+  --t2:      #B8AEA0;
+  --t3:      #7A7268;
+  --ok:      #5B9E73;
+  --err:     #C4524A;
+  --r:       6px;
+  --r2:      10px;
+  --r3:      14px;
+  --sidebar-w: 268px;
+  --header-h: 52px;
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+  font-size: 15px; line-height: 1.65;
+  color: var(--t1); background: var(--bg);
+  overflow: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+input, textarea { font-family: inherit; outline: none; }
+svg { display: block; flex-shrink: 0; }
+
+/* ===== SCREEN SYSTEM ===== */
+#app { width: 100%; height: 100%; position: relative; overflow: hidden; }
+.screen {
+  position: absolute; inset: 0;
+  display: none; opacity: 0;
+  transition: opacity .2s ease;
+}
+.screen.active { display: flex; flex-direction: column; opacity: 1; }
+.screen.entering { animation: fadeIn .25s ease forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+/* ===== SHARED COMPONENTS ===== */
+/* Top bar */
+.topbar {
+  height: var(--header-h); flex-shrink: 0;
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 20px; border-bottom: 1px solid var(--border);
+  background: var(--s1);
+}
+.topbar-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700; color: var(--gold);
+  letter-spacing: -.5px; white-space: nowrap;
+}
+.topbar-logo span { color: var(--t3); font-weight: 400; font-size: 13px; margin-left: 8px; }
+
+/* Back btn */
+.btn-back {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--t3); font-size: 13px;
+  padding: 5px 10px; border-radius: var(--r);
+  background: transparent; transition: all .15s;
+}
+.btn-back:hover { background: var(--s3); color: var(--t1); }
+
+/* Tag */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 99px; font-size: 12px;
+  font-weight: 500; background: var(--s3); color: var(--t2);
+}
+.tag.ai { background: rgba(78,127,170,.15); color: var(--blue-l); }
+.tag.cat { background: var(--gold-bg); color: var(--gold); }
+
+/* Btn */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--r);
+  font-size: 14px; font-weight: 500;
+  transition: all .15s; cursor: pointer;
+}
+.btn-primary { background: var(--gold); color: #0E0C0B; }
+.btn-primary:hover { background: var(--gold-l); }
+.btn-ghost {
+  background: transparent; color: var(--t2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--s3); color: var(--t1); border-color: var(--border2); }
+.btn-sm { padding: 5px 12px; font-size: 13px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Loading spinner */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Skeleton */
+.skel {
+  background: linear-gradient(90deg, var(--s2) 25%, var(--s3) 50%, var(--s2) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--r);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--s3); color: var(--t1);
+  border: 1px solid var(--border2); border-radius: var(--r2);
+  padding: 10px 20px; font-size: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  opacity: 0; transition: all .25s ease;
+  pointer-events: none; z-index: 9999; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== SCREEN: HOME ===== */
+#screen-home { background: var(--bg); overflow-y: auto; }
+
+.home-header {
+  padding: 48px 24px 32px;
+  text-align: center;
+}
+.home-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px; font-weight: 700; color: var(--gold);
+  letter-spacing: -1px; margin-bottom: 8px;
+}
+.home-logo-en { color: var(--t3); font-weight: 400; }
+.home-tagline {
+  color: var(--t2); font-size: 16px; font-weight: 300;
+}
+
+/* Search bar */
+.search-wrap {
+  max-width: 600px; margin: 0 auto 40px;
+  padding: 0 24px;
+}
+.search-box {
+  display: flex; align-items: center; gap: 0;
+  background: var(--s1); border: 1.5px solid var(--border);
+  border-radius: var(--r3); overflow: hidden;
+  transition: border-color .15s;
+}
+.search-box:focus-within { border-color: var(--gold); }
+.search-icon { padding: 0 14px; color: var(--t3); flex-shrink: 0; }
+.search-input {
+  flex: 1; background: transparent; border: none;
+  color: var(--t1); font-size: 16px;
+  padding: 14px 0; min-width: 0;
+}
+.search-input::placeholder { color: var(--t3); }
+.search-btn {
+  background: var(--gold); color: #0E0C0B;
+  font-weight: 600; font-size: 14px;
+  padding: 0 20px; height: 100%;
+  border-radius: 0; transition: background .15s;
+  white-space: nowrap;
+}
+.search-btn:hover { background: var(--gold-l); }
+.search-hints {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; margin-top: 12px;
+}
+.search-hint {
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--t2); font-size: 13px;
+  padding: 4px 12px; border-radius: 99px; cursor: pointer;
+  transition: all .15s;
+}
+.search-hint:hover { background: var(--s3); color: var(--t1); border-color: var(--gold); }
+
+/* History */
+.history-section {
+  max-width: 800px; margin: 0 auto;
+  padding: 0 24px 40px;
+}
+.section-title {
+  font-size: 13px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--t3); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.history-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 16px;
+  cursor: pointer; transition: all .15s;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.history-card:hover { border-color: var(--border2); background: var(--s2); transform: translateY(-1px); }
+.history-card-cover {
+  width: 36px; height: 50px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; color: rgba(255,255,255,.8);
+  flex-shrink: 0; font-weight: 700;
+}
+.history-card-title {
+  font-weight: 600; font-size: 14px; line-height: 1.4;
+  color: var(--t1); display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.history-card-meta { font-size: 12px; color: var(--t3); }
+.history-empty {
+  grid-column: 1/-1;
+  text-align: center; padding: 32px;
+  color: var(--t3); font-size: 14px;
+}
+
+/* Upload hint (P1 占位) */
+.upload-hint {
+  max-width: 800px; margin: 0 auto 32px;
+  padding: 0 24px;
+}
+.upload-box {
+  border: 1.5px dashed var(--border); border-radius: var(--r2);
+  padding: 20px; text-align: center; color: var(--t3); font-size: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.upload-box .p1-badge {
+  background: var(--s3); color: var(--t3);
+  font-size: 11px; padding: 2px 7px; border-radius: 99px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* ===== SCREEN: SEARCH LOADING ===== */
+#screen-loading {
+  align-items: center; justify-content: center; gap: 16px;
+  background: var(--bg);
+}
+.loading-icon { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.loading-icon .spinner { width: 32px; height: 32px; }
+.loading-text { color: var(--t2); font-size: 15px; }
+.loading-sub { color: var(--t3); font-size: 13px; margin-top: 4px; text-align: center; }
+
+/* ===== SCREEN: RESULTS ===== */
+#screen-results { background: var(--bg); }
+.results-body {
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px 40px;
+  max-width: 720px; width: 100%; margin: 0 auto;
+}
+.results-meta {
+  font-size: 13px; color: var(--t3); margin-bottom: 20px;
+}
+.results-meta strong { color: var(--t2); }
+
+/* AI fallback notice */
+.ai-notice {
+  background: rgba(78,127,170,.08); border: 1px solid rgba(78,127,170,.25);
+  border-radius: var(--r2); padding: 12px 16px;
+  font-size: 13px; color: var(--blue-l);
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-bottom: 16px;
+}
+
+.result-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 16px 20px;
+  cursor: pointer; transition: all .15s; margin-bottom: 10px;
+  display: flex; gap: 16px; align-items: flex-start;
+}
+.result-card:hover { border-color: var(--gold); background: var(--s2); }
+.result-cover {
+  width: 44px; height: 62px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-size: 22px;
+  color: rgba(255,255,255,.8); font-weight: 700; flex-shrink: 0;
+}
+.result-info { flex: 1; min-width: 0; }
+.result-title { font-weight: 600; font-size: 16px; color: var(--t1); margin-bottom: 4px; }
+.result-author { font-size: 13px; color: var(--t3); margin-bottom: 8px; }
+.result-desc {
+  font-size: 13px; color: var(--t2); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.result-tags { display: flex; gap: 6px; margin-top: 8px; }
+
+/* ===== SCREEN: DETAIL ===== */
+#screen-detail { background: var(--bg); }
+.detail-body {
+  flex: 1; display: flex; overflow: hidden;
+}
+
+/* Sidebar (outline) */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--s1); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sidebar-book-info {
+  padding: 16px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sidebar-book-cover {
+  width: 36px; height: 50px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-size: 18px;
+  font-weight: 700; color: rgba(255,255,255,.8);
+  margin-bottom: 10px;
+}
+.sidebar-book-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px; font-weight: 600; color: var(--t1);
+  line-height: 1.35; margin-bottom: 4px;
+}
+.sidebar-book-author { font-size: 12px; color: var(--t3); }
+
+.sidebar-outline-head {
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0; display: flex; align-items: center;
+  justify-content: space-between;
+}
+.sidebar-outline-head-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--t3);
+}
+.select-count {
+  font-size: 12px; color: var(--gold);
+  background: var(--gold-bg); padding: 2px 8px; border-radius: 99px;
+}
+
+.outline-tree {
+  flex: 1; overflow-y: auto; padding: 6px 0;
+}
+
+/* Outline generating skeleton */
+.outline-skel { padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; }
+.outline-skel-item { display: flex; gap: 8px; align-items: center; }
+.outline-skel-item .skel { height: 14px; }
+
+/* Chapter row */
+.ch-row {
+  display: flex; align-items: center; gap: 0;
+  padding: 0 8px 0 12px; min-height: 36px;
+  cursor: pointer; transition: background .12s;
+  border-radius: 4px; margin: 1px 4px;
+}
+.ch-row:hover { background: var(--s3); }
+.ch-row.selected { background: var(--gold-bg); }
+.ch-row.selected .ch-title { color: var(--gold-l); }
+
+.ch-expand {
+  width: 20px; height: 20px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--t3); transition: transform .15s;
+}
+.ch-expand.open { transform: rotate(90deg); }
+.ch-expand.leaf { opacity: 0; pointer-events: none; }
+
+.ch-checkbox {
+  width: 16px; height: 16px; flex-shrink: 0;
+  border: 1.5px solid var(--border2); border-radius: 3px;
+  background: transparent; margin: 0 8px 0 2px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s; cursor: pointer;
+}
+.ch-checkbox.checked {
+  background: var(--gold); border-color: var(--gold);
+}
+.ch-checkbox.indeterminate {
+  background: var(--gold-bg); border-color: var(--gold);
+}
+
+.ch-title {
+  flex: 1; font-size: 13px; color: var(--t2);
+  line-height: 1.4; padding: 6px 0;
+  transition: color .12s;
+}
+.ch-row.chapter .ch-title { font-weight: 600; color: var(--t1); font-size: 13.5px; }
+
+/* Sub-sections */
+.ch-children { display: none; }
+.ch-children.open { display: block; }
+.ch-children .ch-row { padding-left: 32px; }
+
+/* Content area */
+.content-area {
+  flex: 1; overflow: hidden; display: flex; flex-direction: column;
+}
+
+/* Tab bar */
+.tab-bar {
+  flex-shrink: 0; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; gap: 0;
+  background: var(--s1);
+}
+.tab {
+  padding: 14px 16px; font-size: 14px; font-weight: 500; color: var(--t3);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all .15s; white-space: nowrap;
+  background: transparent;
+}
+.tab:hover { color: var(--t1); }
+.tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.tab-spacer { flex: 1; }
+.tab-actions {
+  display: flex; gap: 8px; align-items: center;
+}
+
+/* Content main */
+.content-main {
+  flex: 1; overflow-y: auto;
+  padding: 24px 28px 32px;
+}
+
+/* Empty state */
+.content-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 100%; gap: 12px;
+  color: var(--t3); text-align: center;
+}
+.content-empty-icon { font-size: 40px; opacity: .4; }
+.content-empty h3 { font-size: 16px; color: var(--t2); font-weight: 500; }
+.content-empty p { font-size: 13px; max-width: 260px; line-height: 1.5; }
+
+/* Insights panel */
+.insights-panel {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 16px 20px;
+  margin-bottom: 20px; display: none;
+}
+.insights-panel.visible { display: block; }
+.insights-panel-title {
+  font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--t3); margin-bottom: 14px;
+}
+.insights-row { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.insights-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
+.insights-label { font-size: 12px; color: var(--t3); font-weight: 500; }
+.style-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.style-pill {
+  padding: 5px 12px; border-radius: 99px; font-size: 13px;
+  border: 1.5px solid var(--border2); color: var(--t2);
+  cursor: pointer; transition: all .15s; background: transparent;
+}
+.style-pill:hover { border-color: var(--gold); color: var(--t1); }
+.style-pill.active { border-color: var(--gold); background: var(--gold-bg); color: var(--gold-l); }
+.style-custom-input {
+  background: var(--s1); border: 1.5px solid var(--border);
+  color: var(--t1); border-radius: var(--r); padding: 7px 12px;
+  font-size: 13px; width: 100%; transition: border-color .15s;
+  margin-top: 6px;
+}
+.style-custom-input:focus { border-color: var(--gold); }
+.style-custom-input::placeholder { color: var(--t3); }
+
+.word-count-wrap {
+  display: flex; align-items: center; gap: 8px;
+}
+.word-count-input {
+  background: var(--s1); border: 1.5px solid var(--border);
+  color: var(--t1); border-radius: var(--r); padding: 7px 12px;
+  font-size: 14px; width: 90px; transition: border-color .15s;
+  text-align: center;
+}
+.word-count-input:focus { border-color: var(--gold); }
+.word-count-unit { font-size: 13px; color: var(--t3); }
+.word-count-error { font-size: 12px; color: var(--err); margin-top: 4px; }
+.insights-generate-btn { align-self: flex-end; }
+
+/* Generated content */
+.gen-content {
+  display: none;
+}
+.gen-content.visible { display: block; }
+
+.gen-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+}
+.gen-header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.gen-mode-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 12px; font-weight: 600;
+}
+.gen-mode-badge.brief { background: rgba(91,158,115,.12); color: var(--ok); }
+.gen-mode-badge.detailed { background: rgba(78,127,170,.12); color: var(--blue-l); }
+.gen-mode-badge.insights { background: var(--gold-bg); color: var(--gold-l); }
+.gen-chapters { font-size: 12px; color: var(--t3); }
+.gen-params { font-size: 12px; color: var(--t3); }
+
+.gen-body {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 20px 24px;
+  font-size: 14.5px; line-height: 1.75; color: var(--t1);
+  min-height: 120px;
+}
+.gen-body h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; color: var(--t1); margin: 16px 0 8px;
+  border-bottom: 1px solid var(--border); padding-bottom: 6px;
+}
+.gen-body h3:first-child { margin-top: 0; }
+.gen-body p { margin-bottom: 10px; }
+.gen-body ul, .gen-body ol { padding-left: 20px; margin-bottom: 10px; }
+.gen-body li { margin-bottom: 5px; }
+.gen-body strong { color: var(--gold-l); font-weight: 600; }
+.gen-body em { color: var(--t2); font-style: italic; }
+.gen-body .cursor-blink {
+  display: inline-block; width: 2px; height: 1em;
+  background: var(--gold); margin-left: 2px; vertical-align: text-bottom;
+  animation: blink .7s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.gen-actions {
+  display: flex; align-items: center; gap: 10px; margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+/* History panel */
+.history-panel {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--r2); margin-top: 20px; overflow: hidden;
+}
+.history-panel-head {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--t3); cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: background .12s;
+}
+.history-panel-head:hover { background: var(--s3); }
+.history-panel-body { display: none; }
+.history-panel-body.open { display: block; }
+.history-item {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background .12s;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.history-item:last-child { border-bottom: none; }
+.history-item:hover { background: var(--s3); }
+.history-item-left { flex: 1; min-width: 0; }
+.history-item-mode {
+  font-size: 12px; font-weight: 600; color: var(--t3); margin-bottom: 3px;
+}
+.history-item-preview {
+  font-size: 13px; color: var(--t2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.history-item-time { font-size: 11px; color: var(--t3); white-space: nowrap; }
+
+/* Generating skeleton in content */
+.gen-skeleton { display: none; }
+.gen-skeleton.visible { display: block; }
+.gen-skeleton-head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.gen-skeleton-body {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 20px 24px;
+}
+.gen-skeleton-lines { display: flex; flex-direction: column; gap: 10px; }
+
+/* Mobile drawer toggle */
+.mobile-outline-toggle {
+  display: none; position: fixed; bottom: 20px; left: 20px;
+  z-index: 100; width: 44px; height: 44px;
+  background: var(--gold); color: #0E0C0B;
+  border-radius: 50%; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 280px; }
+
+  /* Home tweaks */
+  .home-logo { font-size: 28px; }
+  .home-header { padding: 32px 16px 24px; }
+  .search-wrap { padding: 0 16px; }
+  .history-section { padding: 0 16px 32px; }
+  .history-grid { grid-template-columns: 1fr 1fr; }
+  .upload-hint { padding: 0 16px; }
+
+  /* Detail mobile layout */
+  .detail-body { flex-direction: column; }
+  .sidebar {
+    position: fixed; top: 0; left: -100%; bottom: 0;
+    z-index: 200; transition: left .25s ease;
+    width: var(--sidebar-w);
+    box-shadow: 4px 0 32px rgba(0,0,0,.6);
+  }
+  .sidebar.mobile-open { left: 0; }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0; z-index: 199;
+    background: rgba(0,0,0,.5);
+  }
+  .sidebar-overlay.visible { display: block; }
+  .content-area { overflow: hidden; }
+  .mobile-outline-toggle { display: flex; }
+  .content-main { padding: 16px 16px 80px; }
+  .insights-row { flex-direction: column; }
+  .tab { padding: 12px 12px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══ SCREEN: HOME ═══ -->
+<div id="screen-home" class="screen">
+  <div class="topbar">
+    <div class="topbar-logo">智读<span>ZhiDu</span></div>
+  </div>
+  <div style="flex:1; overflow-y:auto;">
+    <div class="home-header">
+      <div class="home-logo">智<span class="home-logo-en">读</span></div>
+      <div class="home-tagline">输入书名，立即获取大纲、摘要与知识心得</div>
+    </div>
+
+    <!-- F01: Search input -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <div class="search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </div>
+        <input id="home-search-input" class="search-input"
+          placeholder="输入书名，如「深入理解计算机系统」…" autocomplete="off"
+          onkeydown="handleSearchKeydown(event)">
+        <button class="search-btn" onclick="doSearch()">搜索</button>
+      </div>
+      <div class="search-hints">
+        <span class="search-hint" onclick="quickSearch('深入理解计算机系统')">深入理解计算机系统</span>
+        <span class="search-hint" onclick="quickSearch('从零到一')">从零到一</span>
+        <span class="search-hint" onclick="quickSearch('非暴力沟通')">非暴力沟通</span>
+        <span class="search-hint" onclick="quickSearch('被讨厌的勇气')">被讨厌的勇气</span>
+      </div>
+    </div>
+
+    <!-- F26 P1 upload placeholder -->
+    <div class="upload-hint">
+      <div class="upload-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        上传图书文件（PDF / EPUB / TXT / Markdown）
+        <span class="p1-badge">P1 后续版本</span>
+      </div>
+    </div>
+
+    <!-- F21: History book list -->
+    <div class="history-section">
+      <div class="section-title">最近阅读</div>
+      <div class="history-grid" id="history-grid">
+        <div class="history-empty">暂无阅读记录，搜索一本书开始吧</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: LOADING ═══ -->
+<!-- F20: Loading state for search -->
+<div id="screen-loading" class="screen">
+  <div class="topbar">
+    <button class="btn-back" onclick="showScreen('home')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      返回
+    </button>
+    <div class="topbar-logo">智读<span>ZhiDu</span></div>
+  </div>
+  <div class="loading-icon">
+    <div class="spinner"></div>
+    <div>
+      <div class="loading-text" id="loading-text">正在搜索网络资源…</div>
+      <div class="loading-sub" id="loading-sub">正在从多个来源获取图书信息</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: RESULTS ═══ -->
+<div id="screen-results" class="screen">
+  <div class="topbar">
+    <button class="btn-back" onclick="showScreen('home')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      返回
+    </button>
+    <div class="topbar-logo">智读<span>ZhiDu</span></div>
+  </div>
+  <div class="results-body">
+    <!-- F02/F03: Results or fallback notice -->
+    <div id="results-ai-notice" class="ai-notice" style="display:none">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>未找到精确匹配的网络资源，以下结果由 AI 基于自身知识生成，内容仅供参考。</span>
+    </div>
+    <div class="results-meta" id="results-meta"></div>
+    <div id="results-list"></div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: DETAIL ═══ -->
+<div id="screen-detail" class="screen">
+  <!-- F24: Desktop topbar -->
+  <div class="topbar">
+    <button class="btn-back" onclick="showScreen('results')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      搜索结果
+    </button>
+    <span id="detail-topbar-title" style="flex:1; font-size:14px; color:var(--t2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+  </div>
+
+  <div class="detail-body">
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- F05/F07/F08: Outline sidebar -->
+    <aside class="sidebar" id="outline-sidebar">
+      <div class="sidebar-book-info">
+        <div class="sidebar-book-cover" id="sb-cover"></div>
+        <div class="sidebar-book-title" id="sb-title"></div>
+        <div class="sidebar-book-author" id="sb-author"></div>
+      </div>
+      <div class="sidebar-outline-head">
+        <span class="sidebar-outline-head-label">大纲目录</span>
+        <span class="select-count" id="select-count" style="display:none"></span>
+      </div>
+      <div class="outline-tree" id="outline-tree">
+        <!-- F20: Outline loading skeleton (F04 generating) -->
+        <div class="outline-skel" id="outline-skel">
+          <div class="outline-skel-item"><div class="skel" style="width:14px; height:14px; border-radius:3px; flex-shrink:0"></div><div class="skel" style="width:70%; flex:1"></div></div>
+          <div class="outline-skel-item" style="padding-left:20px"><div class="skel" style="width:10px; height:10px; border-radius:2px; flex-shrink:0"></div><div class="skel" style="width:55%"></div></div>
+          <div class="outline-skel-item" style="padding-left:20px"><div class="skel" style="width:10px; height:10px; border-radius:2px; flex-shrink:0"></div><div class="skel" style="width:65%"></div></div>
+          <div class="outline-skel-item"><div class="skel" style="width:14px; height:14px; border-radius:3px; flex-shrink:0"></div><div class="skel" style="width:60%"></div></div>
+          <div class="outline-skel-item" style="padding-left:20px"><div class="skel" style="width:10px; height:10px; border-radius:2px; flex-shrink:0"></div><div class="skel" style="width:50%"></div></div>
+          <div class="outline-skel-item"><div class="skel" style="width:14px; height:14px; border-radius:3px; flex-shrink:0"></div><div class="skel" style="width:75%"></div></div>
+        </div>
+        <div id="outline-nodes"></div>
+      </div>
+    </aside>
+
+    <!-- Content area -->
+    <!-- F24/F25: Responsive layout -->
+    <div class="content-area">
+      <!-- F09/F10/F13: Mode tabs -->
+      <div class="tab-bar">
+        <button class="tab active" id="tab-brief" onclick="switchTab('brief')">缩略内容</button>
+        <button class="tab" id="tab-detailed" onclick="switchTab('detailed')">详细内容</button>
+        <button class="tab" id="tab-insights" onclick="switchTab('insights')">知识心得</button>
+        <span class="tab-spacer"></span>
+        <div class="tab-actions">
+          <!-- F18: Copy -->
+          <button class="btn btn-ghost btn-sm" id="btn-copy" onclick="copyContent()" style="display:none">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            复制
+          </button>
+          <!-- F12/F17: Regenerate -->
+          <button class="btn btn-ghost btn-sm" id="btn-regen" onclick="regenerate()" style="display:none">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/>
+            </svg>
+            重新生成
+          </button>
+        </div>
+      </div>
+
+      <div class="content-main" id="content-main">
+        <!-- Empty state -->
+        <div class="content-empty" id="content-empty">
+          <div class="content-empty-icon">📖</div>
+          <h3>选择章节开始学习</h3>
+          <p>在左侧大纲中勾选一个或多个章节，选择输出模式后生成内容</p>
+        </div>
+
+        <!-- F13-F15: Insights panel -->
+        <div class="insights-panel" id="insights-panel">
+          <div class="insights-panel-title">知识心得参数</div>
+          <div class="insights-row">
+            <!-- F14: Style selector -->
+            <div class="insights-field" style="flex:2">
+              <div class="insights-label">语气风格</div>
+              <div class="style-pills" id="style-pills">
+                <button class="style-pill active" onclick="selectStyle(this,'通俗易懂')">通俗易懂</button>
+                <button class="style-pill" onclick="selectStyle(this,'学术严谨')">学术严谨</button>
+                <button class="style-pill" onclick="selectStyle(this,'幽默轻松')">幽默轻松</button>
+                <button class="style-pill" onclick="selectStyle(this,'批判思辨')">批判思辨</button>
+                <button class="style-pill" onclick="selectStyle(this,'实战导向')">实战导向</button>
+              </div>
+              <input class="style-custom-input" id="style-custom"
+                placeholder="或输入自定义风格描述，如「像给小朋友讲故事」…"
+                oninput="onCustomStyleInput(this)">
+            </div>
+            <!-- F15: Word count -->
+            <div class="insights-field" style="flex:0 0 auto">
+              <div class="insights-label">输出字数</div>
+              <div class="word-count-wrap">
+                <input type="number" class="word-count-input" id="word-count"
+                  value="300" min="100" max="3000"
+                  oninput="validateWordCount(this)">
+                <span class="word-count-unit">字</span>
+              </div>
+              <div class="word-count-error" id="wc-error" style="display:none">请输入 100-3000 之间的字数</div>
+            </div>
+            <!-- F16: Generate -->
+            <div class="insights-field insights-generate-btn" style="flex:0 0 auto; justify-content:flex-end">
+              <button class="btn btn-primary" onclick="generateContent()">生成心得</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- F20: Generating skeleton -->
+        <div class="gen-skeleton" id="gen-skeleton">
+          <div class="gen-skeleton-head">
+            <div class="skel" style="width:60px; height:22px; border-radius:99px"></div>
+            <div class="skel" style="width:120px; height:14px"></div>
+          </div>
+          <div class="gen-skeleton-body">
+            <div class="gen-skeleton-lines">
+              <div class="skel" style="height:16px; width:45%"></div>
+              <div class="skel" style="height:14px; width:90%"></div>
+              <div class="skel" style="height:14px; width:85%"></div>
+              <div class="skel" style="height:14px; width:78%"></div>
+              <div class="skel" style="height:14px; width:92%"></div>
+              <div class="skel" style="height:14px; width:70%"></div>
+              <div style="margin-top:8px"></div>
+              <div class="skel" style="height:16px; width:38%"></div>
+              <div class="skel" style="height:14px; width:88%"></div>
+              <div class="skel" style="height:14px; width:80%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- F09/F10/F11/F16/F19: Generated content with streaming -->
+        <div class="gen-content" id="gen-content">
+          <div class="gen-header">
+            <div class="gen-header-left">
+              <span class="gen-mode-badge" id="gen-mode-badge"></span>
+              <span class="gen-chapters" id="gen-chapters-label"></span>
+              <span class="gen-params" id="gen-params-label"></span>
+            </div>
+          </div>
+          <div class="gen-body" id="gen-body"></div>
+          <div class="gen-actions" id="gen-actions">
+            <button class="btn btn-ghost btn-sm" onclick="copyContent()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              复制内容
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="regenerate()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/>
+              </svg>
+              重新生成
+            </button>
+          </div>
+        </div>
+
+        <!-- F23: History panel -->
+        <div class="history-panel" id="history-panel" style="display:none">
+          <div class="history-panel-head" onclick="toggleHistoryPanel()">
+            <span>历史生成记录</span>
+            <svg id="history-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <div class="history-panel-body" id="history-panel-body"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- Mobile outline toggle (F25) -->
+<button class="mobile-outline-toggle" id="mobile-outline-toggle" onclick="openMobileSidebar()">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+</button>
+
+<div id="toast"></div>
+
+<script>
+/* ===================================================================
+   MOCK DATA
+=================================================================== */
+const BOOKS = [
+  {
+    id: 'csapp',
+    title: '深入理解计算机系统',
+    author: 'Randal E. Bryant & David R. O\'Hallaron',
+    year: '2016', category: '技术',
+    color: '#1D3D72',
+    description: '从程序员的视角深入理解计算机系统的工作原理，涵盖数据表示、汇编语言、处理器架构、存储器层次结构、链接、异常控制流、虚拟内存等核心主题，是计算机系统领域的经典教材。',
+    outline: [
+      { id: 'c1', title: '第一章  计算机系统漫游', children: [
+        { id: 'c1s1', title: '1.1 信息就是位 + 上下文' },
+        { id: 'c1s2', title: '1.2 程序被翻译成不同的格式' },
+        { id: 'c1s3', title: '1.3 了解编译系统工作原理的益处' },
+        { id: 'c1s4', title: '1.4 处理器读取并解释内存中的指令' },
+      ]},
+      { id: 'c2', title: '第二章  信息的表示和处理', children: [
+        { id: 'c2s1', title: '2.1 信息存储' },
+        { id: 'c2s2', title: '2.2 整数表示' },
+        { id: 'c2s3', title: '2.3 整数运算' },
+        { id: 'c2s4', title: '2.4 浮点数' },
+      ]},
+      { id: 'c3', title: '第三章  程序的机器级表示', children: [
+        { id: 'c3s1', title: '3.1 历史观点' },
+        { id: 'c3s2', title: '3.2 程序编码' },
+        { id: 'c3s3', title: '3.3 数据格式' },
+        { id: 'c3s4', title: '3.4 访问信息' },
+      ]},
+      { id: 'c6', title: '第六章  存储器层次结构', children: [
+        { id: 'c6s1', title: '6.1 存储技术' },
+        { id: 'c6s2', title: '6.2 局部性' },
+        { id: 'c6s3', title: '6.3 存储器层次结构' },
+        { id: 'c6s4', title: '6.4 高速缓存存储器' },
+      ]},
+      { id: 'c9', title: '第九章  虚拟内存', children: [
+        { id: 'c9s1', title: '9.1 物理和虚拟寻址' },
+        { id: 'c9s2', title: '9.2 地址空间' },
+        { id: 'c9s3', title: '9.3 VM 作为缓存的工具' },
+      ]},
+    ]
+  },
+  {
+    id: 'zero-to-one',
+    title: '从零到一：开启商业与未来的秘密',
+    author: 'Peter Thiel & Blake Masters',
+    year: '2014', category: '商业管理',
+    color: '#1A4A3A',
+    description: '彼得·蒂尔分享了创建 PayPal、Palantir 的核心思想：真正的创新不是复制，而是创造全新事物。他挑战了流行的商业竞争理念，强调垄断才是好生意，并探讨了如何构建一家有价值的科技公司。',
+    outline: [
+      { id: 'z1', title: '第一章  未来的挑战', children: [
+        { id: 'z1s1', title: '1.1 进步的两种形式：水平进步与垂直进步' },
+        { id: 'z1s2', title: '1.2 从 0 到 1：创造新事物' },
+      ]},
+      { id: 'z2', title: '第三章  一切幸福的企业都有相同之处', children: [
+        { id: 'z2s1', title: '3.1 逃避竞争' },
+        { id: 'z2s2', title: '3.2 垄断资本主义' },
+        { id: 'z2s3', title: '3.3 竞争的谎言' },
+      ]},
+      { id: 'z3', title: '第五章  后发优势', children: [
+        { id: 'z3s1', title: '5.1 垄断型企业的特征' },
+        { id: 'z3s2', title: '5.2 建立垄断的路径' },
+        { id: 'z3s3', title: '5.3 最后行动者优势' },
+      ]},
+      { id: 'z4', title: '第八章  秘密', children: [
+        { id: 'z4s1', title: '8.1 关于秘密的世界观' },
+        { id: 'z4s2', title: '8.2 如何找到秘密' },
+      ]},
+      { id: 'z5', title: '第十四章  创始人的悖论', children: [
+        { id: 'z5s1', title: '14.1 创始人的奇特之处' },
+        { id: 'z5s2', title: '14.2 设计师与他的偶像' },
+      ]},
+    ]
+  },
+  {
+    id: 'nvc',
+    title: '非暴力沟通',
+    author: 'Marshall B. Rosenberg',
+    year: '2003', category: '哲学/育儿',
+    color: '#4A2020',
+    description: '马歇尔·卢森堡博士提出的非暴力沟通方法，旨在帮助人们转化批评、指责、命令等沟通习惯，学会诚实地表达自己、同理地倾听他人，从而化解冲突、建立更深厚的人际关系。',
+    outline: [
+      { id: 'n1', title: '第一章  让爱融入生活', children: [
+        { id: 'n1s1', title: '1.1 异化的沟通方式' },
+        { id: 'n1s2', title: '1.2 非暴力沟通的四个要素' },
+      ]},
+      { id: 'n2', title: '第二章  是非对错，还是生命之美', children: [
+        { id: 'n2s1', title: '2.1 观察，而不评论' },
+        { id: 'n2s2', title: '2.2 区分观察与评论' },
+      ]},
+      { id: 'n3', title: '第三章  体会和表达感受', children: [
+        { id: 'n3s1', title: '3.1 区分感受与想法' },
+        { id: 'n3s2', title: '3.2 感受的词汇表' },
+      ]},
+      { id: 'n4', title: '第四章  是请求还是命令', children: [
+        { id: 'n4s1', title: '4.1 提出具体的请求' },
+        { id: 'n4s2', title: '4.2 请求与命令的区别' },
+        { id: 'n4s3', title: '4.3 倾听确认' },
+      ]},
+      { id: 'n5', title: '第六章  用全身心倾听', children: [
+        { id: 'n5s1', title: '6.1 全情投入' },
+        { id: 'n5s2', title: '6.2 倾听使人痊愈' },
+      ]},
+    ]
+  },
+  {
+    id: 'courage',
+    title: '被讨厌的勇气',
+    author: '岸见一郎 & 古贺史健',
+    year: '2013', category: '哲学',
+    color: '#3A2C5A',
+    description: '以哲人与青年对话的形式，阐释阿德勒心理学的精髓：一切烦恼都源于人际关系；过去不能决定现在；人生的意义由你自己赋予。本书挑战弗洛伊德的原因论，提出目的论的人生观。',
+    outline: [
+      { id: 'g1', title: '第一夜  我们的不幸是谁的错', children: [
+        { id: 'g1s1', title: '阿德勒心理学是什么' },
+        { id: 'g1s2', title: '原因论与目的论' },
+        { id: 'g1s3', title: '创伤并不存在' },
+      ]},
+      { id: 'g2', title: '第二夜  一切烦恼都来自人际关系', children: [
+        { id: 'g2s1', title: '为何讨厌自己' },
+        { id: 'g2s2', title: '人际关系的烦恼' },
+        { id: 'g2s3', title: '课题分离' },
+      ]},
+      { id: 'g3', title: '第三夜  让干涉他人的欲望走开', children: [
+        { id: 'g3s1', title: '自由的代价' },
+        { id: 'g3s2', title: '被讨厌的勇气' },
+      ]},
+      { id: 'g4', title: '第四夜  给予他人"贡献感"', children: [
+        { id: 'g4s1', title: '横向关系与纵向关系' },
+        { id: 'g4s2', title: '鼓励 vs 表扬' },
+        { id: 'g4s3', title: '共同体感觉' },
+      ]},
+    ]
+  },
+];
+
+const SEARCH_DB = {
+  '深入理解计算机系统': ['csapp'],
+  'csapp': ['csapp'],
+  '从零到一': ['zero-to-one'],
+  '从0到1': ['zero-to-one'],
+  '非暴力沟通': ['nvc'],
+  '被讨厌的勇气': ['courage'],
+  '阿德勒': ['courage'],
+};
+
+/* ===================================================================
+   CONTENT MOCK LIBRARY (F09, F10, F16)
+=================================================================== */
+const CONTENT_MOCK = {
+  brief: {
+    'c1': '**第一章：计算机系统漫游** 是全书的概览。\n\n- **信息即比特+上下文**：一段字节序列可以是整数、浮点数、字符或指令，取决于上下文解释方式\n- **编译流程四阶段**：预处理 → 编译 → 汇编 → 链接，每步将程序转化为更底层的表达\n- **系统层次结构**：CPU、主存、I/O 设备通过总线协同工作，操作系统是硬件与应用之间的抽象层\n- **关键洞察**：理解系统工作原理，有助于写出更高效、安全的程序',
+    'c2': '**第二章：信息的表示和处理** 深入位级操作。\n\n- **整数编码**：原码、补码、无符号数，以及溢出陷阱\n- **字节序**：大端与小端对跨平台通信的影响\n- **浮点标准**：IEEE 754 的符号位、指数位、尾数位结构，精度限制\n- **关键洞察**：很多安全漏洞（缓冲区溢出、整数溢出）根源在对这一章的理解不足',
+    'c6': '**第六章：存储器层次结构** 是性能优化的基础。\n\n- **局部性原理**：时间局部性（近期用过的会再用）和空间局部性（相邻地址会被访问）\n- **Cache 结构**：组相联映射、LRU 替换策略、写回与写直达\n- **性能影响**：Cache miss 代价是 Cache hit 的数十倍，程序的访存模式决定性能上限\n- **关键洞察**：矩阵乘法的行优先遍历比列优先快数倍，皆因局部性',
+    'z1': '**第一章：未来的挑战** 奠定了全书的思维框架。\n\n- **两种进步**：水平进步（复制已有）vs 垂直进步（从 0 到 1 创造新事物）\n- **全球化 ≠ 技术进步**：仅靠复制发达国家路径，资源会耗尽\n- **秘密的重要性**：真正有价值的企业，建立在别人不知道的秘密之上\n- **关键洞察**：问自己"什么是大家都认同但实际上是错的？"——这就是创业机会所在',
+    'n1': '**第一章：让爱融入生活** 介绍非暴力沟通的基础。\n\n- **异化的沟通方式**：道德评判、比较、命令等语言模式切断了连接\n- **四个核心要素**：观察（事实）→ 感受（情绪）→ 需要（根源）→ 请求（行动）\n- **沟通的目的**：不是赢得争论，而是建立真正的理解与连接\n- **关键洞察**：大多数冲突并非立场对立，而是双方未能清楚表达自己的感受和需要',
+    'g1': '**第一夜：我们的不幸是谁的错** 挑战了归因的根基。\n\n- **目的论 vs 原因论**：阿德勒认为人不是被过去驱动，而是被目的（未来的意图）所驱动\n- **创伤不存在**：受伤不是过去决定的，是当下对过去赋予了意义\n- **生活风格**：每个人在幼年形成的对世界的信念模式，但可以随时改变\n- **关键洞察**：过去无法改变，但对过去的解释随时可以重写',
+  },
+  detailed: {
+    'c1': `### 第一章 计算机系统漫游 — 详细解析
+
+**核心主题：** 本章通过追踪一段 hello.c 程序的一生，展示计算机系统各层次的运作机制。
+
+#### 1. 信息就是位 + 上下文
+
+计算机中所有信息的本质都是一串比特序列。同样的 0101 序列，在不同的上下文中可以被解释为整数、字符、浮点数甚至机器指令。这一认识是理解系统的基础——**没有脱离上下文的"信息"**。
+
+例如，ASCII 码 0x48 在字符上下文中是字母 'H'，在整数上下文中是数字 72，在程序上下文中可能是某条指令的一部分。
+
+#### 2. 程序的编译流程
+
+从源代码到可执行文件，经历四个严格有序的阶段：
+
+- **预处理阶段**：处理 #include、#define，展开宏，生成 .i 文件
+- **编译阶段**：将 C 代码翻译为汇编代码（.s 文件），这一步可由人读懂
+- **汇编阶段**：将汇编翻译为机器码，生成可重定位目标文件（.o）
+- **链接阶段**：将多个 .o 文件和标准库合并，生成最终的可执行文件
+
+理解这四阶段，有助于分析编译错误、优化编译选项（如 -O2 在编译阶段生效）。
+
+#### 3. 系统硬件组成
+
+**总线（Bus）** 是各硬件之间传递数据的公共通道，携带 word（字长，32 或 64 位）大小的信息。**主存（Main Memory）** 是程序运行时的工作区，本质是字节数组，每个字节有唯一地址。**CPU（处理器）** 执行存放在主存中的指令序列，内含 **PC（程序计数器）** 寄存器指向当前指令地址。
+
+#### 4. 操作系统的角色
+
+操作系统是应用程序与硬件之间的抽象层，提供三大抽象：
+- **进程**：对处理器和主存的抽象
+- **虚拟内存**：对主存和磁盘 I/O 的抽象
+- **文件**：对 I/O 设备的抽象
+
+**关键启示：** 程序员如果只停留在高级语言层面，会错过大量优化机会。理解汇编、缓存、链接，才能写出真正高效的代码。`,
+    'z1': `### 第一章 未来的挑战 — 详细解析
+
+**核心问题：** 什么是真正的创新？未来来自哪里？
+
+#### 1. 两种进步模式
+
+彼得·蒂尔将进步分为两类：
+
+**水平进步（Horizontal Progress）**：从 1 到 N，复制已有的成功经验。全球化是典型的水平进步——把发达国家的模式复制到其他地方。它可以很快，但本质上没有创造新事物。
+
+**垂直进步（Vertical Progress）**：从 0 到 1，发明全新的事物。技术就是垂直进步的核心体现。一台打字机变成一百台是水平进步，而发明文字处理器就是垂直进步。
+
+#### 2. 创业公司的使命
+
+蒂尔认为，创业公司是人类可以大规模实现垂直进步的少数几种机制之一。原因在于：
+
+- 大公司受制于官僚体制，难以创新
+- 个人力量太小，无法推动技术革命  
+- 小团队（5-20人）最容易形成共识，最快实现从 0 到 1 的突破
+
+#### 3. 对全球化的警示
+
+单纯依赖全球化（水平进步）是危险的。如果中国复制美国的工业模式，地球的资源将无法承受。**真正可持续的未来，必须建立在技术突破之上**，否则只是对有限资源的争夺。
+
+#### 4. 核心洞察
+
+> 「每一刻只会发生一次。」
+
+未来不会自动到来，需要建造者。蒂尔认为，今天最重要的事情是：找到一件你认为正确但大多数人不同意的事情——那就是创新的起点。`,
+    'n1': `### 第一章 让爱融入生活 — 详细解析
+
+**核心理念：** 语言可以成为墙壁，也可以成为桥梁。
+
+#### 1. 异化的沟通方式
+
+卢森堡博士观察到，人类在沟通中存在四种常见的"语言暴力"：
+
+**道德评判**：当对方的行为不符合我们的价值观时，我们用标签攻击——"你真懒"、"这太愚蠢了"。这类评判往往是价值观差异的变形表达，但却以"事实"的口吻呈现。
+
+**比较**：把自己或他人与某个标准或某人比较，是一种特别隐蔽的评判形式。"你看看别人家的孩子……"
+
+**回避责任**：使用"不得不"、"应该"、"必须"等措辞，将自己的选择包装为外部强迫。这让我们逃避了对自己行为的责任。
+
+**强人所难**：以威胁或奖励来迫使他人服从，本质上是将自己的需要凌驾于他人之上。
+
+#### 2. 非暴力沟通的四要素
+
+NVC（Non-Violent Communication）提供了一个清晰的沟通框架：
+
+1. **观察（Observation）**：区分事实与评论。"你今天迟到了三次"是观察；"你总是迟到"是评论。
+2. **感受（Feeling）**：表达内心真实的情绪，而非想法。"我感到担心"是感受；"我感觉你不重视我"是判断。
+3. **需要（Need）**：每种感受背后都有未被满足的需要。愤怒背后可能是对尊重的需要；悲伤背后可能是对连接的渴望。
+4. **请求（Request）**：提出具体、可行的请求，而不是抱怨或命令。
+
+#### 3. 实践意义
+
+理解这四要素，不是为了使用一套"话术"，而是为了真正理解：**我们的语言反映了我们的内心状态**。当我们习惯于评判，往往是因为自己的需要长期未被看见。NVC 首先是一种自我觉察的工具，其次才是沟通技巧。`,
+  },
+  insights: {
+    template: (chapters, style, wordCount) => {
+      const chapterTitles = chapters.map(c => c.title).join('、');
+      const styleMap = {
+        '通俗易懂': `以下是关于「${chapterTitles}」的读书心得：\n\n**核心要点整理**\n\n1. **最重要的一个概念**：这一章的核心是帮助我们建立全新的视角来看待熟悉的事物。作者用清晰的逻辑链条，把复杂的理论转化为可以操作的认知框架。\n\n2. **让我印象最深的内容**：书中的几个案例非常有说服力——它们不是抽象的理论演绎，而是来自真实世界的观察，让人恍然大悟"原来如此"。\n\n3. **可以立刻用上的方法**：把这章学到的东西转化为行动，就是每次遇到类似问题时，先停下来问自己：我是在评判现象，还是在理解它？\n\n4. **延伸思考**：这章内容和日常工作、学习、生活的联系远比表面看起来紧密。很多我们习以为常的做法，其实正是书中描述的"待改进模式"。\n\n**一句话总结**：看完这章，最大的收获是获得了一个新的"思考工具"，让我在面对相关问题时多了一层更清醒的视角。`,
+        '学术严谨': `**读书笔记 — ${chapterTitles}**\n\n**理论框架梳理**\n\n本章提出的核心概念构建了一套自洽的分析框架。作者从第一性原理出发，通过演绎推理建立了主要论点，并辅以实证案例加以验证。\n\n**主要论点提炼**\n\n1. 核心命题的成立依赖于若干前提假设，这些假设在大多数常见情景中是可靠的，但在边界条件下需要审慎检验。\n2. 作者对传统观点的批判具有一定说服力，但在论证链条的部分环节存在可商榷之处，尤其是从个案到普遍结论的归纳跨度。\n3. 所提出的方法论框架具有较强的操作性，可在特定条件下作为分析工具使用。\n\n**批判性评估**\n\n本章研究视角新颖，但需注意其适用边界。结论的推广须结合具体情境加以审视，避免过度概化。\n\n**延伸阅读建议**\n\n建议结合相关领域的经典文献，对本章论点进行纵深比较，以形成更为完整的知识体系。`,
+        '幽默轻松': `好的，咱们来聊聊「${chapterTitles}」这章 —— 说真的，读完我有点坐不住了。🤔\n\n**啊哈时刻 × 3**\n\n1. **第一个"原来如此"**：以前我以为自己完全理解这件事，结果作者三言两语就把我的认知"拆墙"了。就好像你以为自己会骑自行车，直到有人问你"你知道你在骑自行车时身体为什么不会倒吗"——然后你就真不会了。\n\n2. **第二个"这说的不是我吧"**：书里有个描述，读着读着感觉在照镜子。完全对号入座，然后默默把书翻页假装没看见。\n\n3. **第三个"我要发给所有人看"**：这个方法论太实用了，立刻截图发了给三个朋友，他们回复"嗯"。好吧。\n\n**总结就一句话**\n\n如果你也曾对这个话题有"好像懂了又没完全懂"的感觉，这章绝对值得仔细读一遍。作者解释得清楚又不无聊，我打四星半（扣半星是因为让我意识到自己之前太过想当然了）。`,
+        '批判思辨': `**批判性阅读笔记 — ${chapterTitles}**\n\n**论点的优势**\n\n作者提出的核心框架具有相当的解释力，能够有效整合该领域的若干分散观察，形成统一的分析视角。尤其是对"传统做法为何失效"的诊断，切中要害，论证有力。\n\n**存在的张力与疑问**\n\n1. **过度简化的风险**：将复杂现象归纳为单一框架，有其认知便利性，但也可能遮蔽了背后的多元因果机制。现实中的情况往往比理论框架更加混乱。\n\n2. **样本的代表性**：书中援引的案例多来自特定文化和历史背景，其结论的普遍性有待更系统的跨文化检验。\n\n3. **操作化的困难**：理论上正确的建议，在具体执行层面面临相当的障碍。作者对实施难度的讨论稍显乐观。\n\n**整体评价**\n\n本章提供了一个有价值的思维工具，但读者应保持批判距离，结合自身情境选择性吸收，而非全盘接受。`,
+        '实战导向': `**实战指南 — ${chapterTitles} 核心方法提取**\n\n**立刻能用的 3 个动作**\n\n✅ **行动 1**：今天就可以开始。把这章描述的核心框架写在一张便利贴上，贴在你每天都能看到的地方。不是让你记住它，而是让它成为你遇到相关问题时的第一个"提示音"。\n\n✅ **行动 2**：在下一次相关场景中，主动尝试应用书中的方法。不要等到"完全准备好"——第一次应用几乎注定不完美，但只有实践才能让理论变成真正的能力。\n\n✅ **行动 3**：一周后回顾。记录一下哪些地方奏效了，哪些地方行不通。这一步往往是被跳过但最有价值的一步。\n\n**常见误区提醒**\n\n- ❌ 把方法当成一劳永逸的解法，而不是需要持续精进的工具\n- ❌ 照搬书中案例而不理解背后的原理\n- ❌ 学了就觉得懂了，没有反馈闭环\n\n**底线结论**\n\n这章的价值不在于"读完"，而在于"用上"。把它当工具手册，随时翻，随时用。`,
+      };
+      return styleMap[style] || styleMap['通俗易懂'];
+    }
+  }
+};
+
+/* ===================================================================
+   STATE
+=================================================================== */
+const state = {
+  screen: 'home',
+  searchQuery: '',
+  searchResults: [],
+  isAIFallback: false,
+  selectedBook: null,
+  outlineReady: false,
+  selectedChapters: new Set(),
+  outputMode: 'brief',       // 'brief' | 'detailed' | 'insights'
+  insightStyle: '通俗易懂',
+  insightStyleCustom: '',
+  insightWordCount: 300,
+  isGenerating: false,
+  generatedContent: '',
+  generatedRawText: '',
+  expandedChapters: new Set(),
+  generationHistory: JSON.parse(localStorage.getItem('zhidu_gen_history') || '{}'),
+  historyBooks: JSON.parse(localStorage.getItem('zhidu_books') || '[]'),
+};
+
+/* ===================================================================
+   SCREEN MANAGEMENT
+=================================================================== */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active', 'entering');
+    s.style.display = 'none';
+    s.style.opacity = '0';
+  });
+  const el = document.getElementById('screen-' + name);
+  if (!el) return;
+  el.style.display = 'flex';
+  el.classList.add('active', 'entering');
+  el.style.opacity = '1';
+  state.screen = name;
+  // Mobile toggle visibility
+  const toggle = document.getElementById('mobile-outline-toggle');
+  if (toggle) toggle.style.display = (name === 'detail') ? 'flex' : 'none';
+}
+
+/* ===================================================================
+   F01 SEARCH
+=================================================================== */
+function handleSearchKeydown(e) {
+  if (e.key === 'Enter') doSearch();
+}
+function quickSearch(q) {
+  document.getElementById('home-search-input').value = q;
+  doSearch();
+}
+
+function doSearch() {
+  const q = document.getElementById('home-search-input').value.trim();
+  if (!q) {
+    showToast('请输入书名');
+    return;
+  }
+  state.searchQuery = q;
+  performSearch(q);
+}
+
+function performSearch(q) {
+  showScreen('loading');
+  document.getElementById('loading-text').textContent = `正在搜索"${q}"的网络资源…`;
+  document.getElementById('loading-sub').textContent = '正在从多个来源获取图书信息';
+
+  setTimeout(() => {
+    // F02/F03: Simulate search results or AI fallback
+    const matchIds = SEARCH_DB[q] || SEARCH_DB[q.toLowerCase()] || [];
+    const exactResults = matchIds.map(id => BOOKS.find(b => b.id === id)).filter(Boolean);
+
+    let results = exactResults;
+    let isAI = false;
+    if (exactResults.length === 0) {
+      // F03: No results - use AI fallback (show all books as "similar")
+      results = BOOKS.slice(0, 2);
+      isAI = true;
+    }
+    state.searchResults = results;
+    state.isAIFallback = isAI;
+    renderResults(results, isAI, q);
+    showScreen('results');
+  }, 1400);
+}
+
+function renderResults(books, isAI, q) {
+  // F03: AI notice
+  const notice = document.getElementById('results-ai-notice');
+  notice.style.display = isAI ? 'flex' : 'none';
+
+  // F02: Meta info
+  const meta = document.getElementById('results-meta');
+  meta.innerHTML = isAI
+    ? `未找到"<strong>${q}</strong>"的精确网络资源，以下为 AI 关联推荐`
+    : `找到 <strong>${books.length}</strong> 条关于"<strong>${q}</strong>"的结果`;
+
+  // F02: Results list
+  const list = document.getElementById('results-list');
+  list.innerHTML = '';
+  books.forEach(book => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.innerHTML = `
+      <div class="result-cover" style="background:${book.color}">${book.title[0]}</div>
+      <div class="result-info">
+        <div class="result-title">${book.title}</div>
+        <div class="result-author">${book.author} · ${book.year}</div>
+        <div class="result-desc">${book.description}</div>
+        <div class="result-tags">
+          <span class="tag cat">${book.category}</span>
+          ${isAI ? '<span class="tag ai">AI 关联</span>' : ''}
+        </div>
+      </div>
+    `;
+    card.onclick = () => openBook(book);
+    list.appendChild(card);
+  });
+}
+
+/* ===================================================================
+   F04/F05/F06 BOOK DETAIL & OUTLINE
+=================================================================== */
+function openBook(book) {
+  state.selectedBook = book;
+  state.selectedChapters = new Set();
+  state.outlineReady = false;
+  state.generatedContent = '';
+  state.expandedChapters = new Set();
+
+  // Update topbar
+  document.getElementById('detail-topbar-title').textContent = book.title;
+
+  // Sidebar book info
+  document.getElementById('sb-cover').style.background = book.color;
+  document.getElementById('sb-cover').textContent = book.title[0];
+  document.getElementById('sb-title').textContent = book.title;
+  document.getElementById('sb-author').textContent = book.author;
+  document.getElementById('select-count').style.display = 'none';
+
+  // Reset content area
+  resetContentArea();
+
+  // F06: Check if outline is cached
+  const cached = localStorage.getItem('zhidu_outline_' + book.id);
+  if (cached) {
+    // Load from "database" immediately
+    showScreen('detail');
+    state.outlineReady = true;
+    renderOutline(book.outline);
+    loadHistoryContent(book);
+  } else {
+    // F04: Generate outline
+    showScreen('detail');
+    document.getElementById('outline-skel').style.display = 'flex';
+    document.getElementById('outline-nodes').innerHTML = '';
+    setTimeout(() => {
+      state.outlineReady = true;
+      localStorage.setItem('zhidu_outline_' + book.id, JSON.stringify(book.outline));
+      document.getElementById('outline-skel').style.display = 'none';
+      renderOutline(book.outline);
+      loadHistoryContent(book);
+    }, 1800);
+  }
+
+  // F21/F22: Add to history
+  addToHistory(book);
+}
+
+// F05: Render outline tree
+function renderOutline(outline) {
+  const container = document.getElementById('outline-nodes');
+  container.innerHTML = '';
+
+  outline.forEach(chapter => {
+    // Chapter row
+    const chRow = createChapterRow(chapter, false);
+    container.appendChild(chRow);
+
+    if (chapter.children && chapter.children.length > 0) {
+      const childContainer = document.createElement('div');
+      childContainer.className = 'ch-children';
+      childContainer.id = 'ch-children-' + chapter.id;
+
+      chapter.children.forEach(section => {
+        const secRow = createChapterRow(section, true);
+        childContainer.appendChild(secRow);
+      });
+      container.appendChild(childContainer);
+    }
+  });
+}
+
+function createChapterRow(node, isSection) {
+  const row = document.createElement('div');
+  row.className = 'ch-row' + (isSection ? '' : ' chapter');
+  row.id = 'ch-row-' + node.id;
+
+  const hasChildren = !isSection && node.children && node.children.length > 0;
+
+  row.innerHTML = `
+    <span class="ch-expand ${hasChildren ? '' : 'leaf'}" id="expand-${node.id}">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </span>
+    <span class="ch-checkbox" id="cb-${node.id}" onclick="toggleCheck(event, '${node.id}', ${isSection})"></span>
+    <span class="ch-title">${node.title}</span>
+  `;
+
+  if (hasChildren) {
+    row.querySelector('.ch-expand').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleExpand(node.id);
+    });
+  }
+
+  row.addEventListener('click', (e) => {
+    if (e.target.closest('.ch-checkbox') || e.target.closest('.ch-expand')) return;
+    // Click row = select this node
+    toggleCheck(e, node.id, isSection, true);
+  });
+
+  return row;
+}
+
+function toggleExpand(chapterId) {
+  const children = document.getElementById('ch-children-' + chapterId);
+  const expand = document.getElementById('expand-' + chapterId);
+  if (!children) return;
+  const isOpen = children.classList.contains('open');
+  if (isOpen) {
+    children.classList.remove('open');
+    expand.classList.remove('open');
+    state.expandedChapters.delete(chapterId);
+  } else {
+    children.classList.add('open');
+    expand.classList.add('open');
+    state.expandedChapters.add(chapterId);
+  }
+}
+
+// F07/F08: Chapter selection
+function toggleCheck(e, nodeId, isSection, fromRowClick = false) {
+  if (e) e.stopPropagation();
+  const already = state.selectedChapters.has(nodeId);
+  if (already) {
+    state.selectedChapters.delete(nodeId);
+  } else {
+    state.selectedChapters.add(nodeId);
+    // If clicking a chapter row (not section), also auto-expand
+    if (!isSection) toggleExpand(nodeId);
+  }
+  updateCheckboxUI();
+  updateSelectCount();
+}
+
+function updateCheckboxUI() {
+  state.selectedBook.outline.forEach(ch => {
+    const cb = document.getElementById('cb-' + ch.id);
+    const row = document.getElementById('ch-row-' + ch.id);
+    if (!cb) return;
+
+    const chSelected = state.selectedChapters.has(ch.id);
+    const childIds = (ch.children || []).map(s => s.id);
+    const selectedChildren = childIds.filter(id => state.selectedChapters.has(id));
+
+    if (chSelected) {
+      cb.className = 'ch-checkbox checked';
+      cb.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0E0C0B" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
+      row.classList.add('selected');
+    } else if (selectedChildren.length > 0) {
+      cb.className = 'ch-checkbox indeterminate';
+      cb.innerHTML = `<div style="width:8px;height:2px;background:var(--gold);border-radius:1px"></div>`;
+      row.classList.remove('selected');
+    } else {
+      cb.className = 'ch-checkbox';
+      cb.innerHTML = '';
+      row.classList.remove('selected');
+    }
+
+    (ch.children || []).forEach(sec => {
+      const scb = document.getElementById('cb-' + sec.id);
+      const srow = document.getElementById('ch-row-' + sec.id);
+      if (!scb) return;
+      const sel = state.selectedChapters.has(sec.id);
+      scb.className = 'ch-checkbox' + (sel ? ' checked' : '');
+      scb.innerHTML = sel ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0E0C0B" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : '';
+      if (srow) sel ? srow.classList.add('selected') : srow.classList.remove('selected');
+    });
+  });
+}
+
+function updateSelectCount() {
+  const count = state.selectedChapters.size;
+  const el = document.getElementById('select-count');
+  if (count > 0) {
+    el.style.display = 'inline-flex';
+    el.textContent = `已选 ${count} 项`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+/* ===================================================================
+   CONTENT AREA RESET & TAB SWITCHING
+=================================================================== */
+function resetContentArea() {
+  document.getElementById('content-empty').style.display = 'flex';
+  document.getElementById('content-empty').style.flexDirection = 'column';
+  document.getElementById('gen-skeleton').classList.remove('visible');
+  document.getElementById('gen-content').classList.remove('visible');
+  document.getElementById('insights-panel').classList.remove('visible');
+  document.getElementById('history-panel').style.display = 'none';
+  document.getElementById('btn-copy').style.display = 'none';
+  document.getElementById('btn-regen').style.display = 'none';
+  state.generatedContent = '';
+  switchTab('brief');
+}
+
+// F09/F10/F13: Tab switching
+function switchTab(mode) {
+  ['brief', 'detailed', 'insights'].forEach(m => {
+    document.getElementById('tab-' + m).classList.toggle('active', m === mode);
+  });
+  state.outputMode = mode;
+
+  // Show/hide insights panel
+  const panel = document.getElementById('insights-panel');
+  if (mode === 'insights') {
+    panel.classList.add('visible');
+  } else {
+    panel.classList.remove('visible');
+  }
+
+  // If we have content and mode changes, clear content display
+  if (state.generatedContent) {
+    document.getElementById('gen-content').classList.remove('visible');
+    document.getElementById('content-empty').style.display = 'flex';
+    document.getElementById('btn-copy').style.display = 'none';
+    document.getElementById('btn-regen').style.display = 'none';
+    state.generatedContent = '';
+  }
+
+  // Auto generate if not insights and chapters selected
+  if (mode !== 'insights' && state.selectedChapters.size > 0) {
+    generateContent();
+  }
+}
+
+/* ===================================================================
+   F09/F10/F11/F16 CONTENT GENERATION (with F19 streaming)
+=================================================================== */
+function generateContent() {
+  if (state.selectedChapters.size === 0) {
+    showToast('请先在左侧选择章节');
+    return;
+  }
+  if (state.isGenerating) return;
+
+  // F15: Validate word count for insights
+  if (state.outputMode === 'insights') {
+    const wc = parseInt(document.getElementById('word-count').value);
+    if (isNaN(wc) || wc < 100 || wc > 3000) {
+      document.getElementById('wc-error').style.display = 'block';
+      return;
+    }
+    document.getElementById('wc-error').style.display = 'none';
+    state.insightWordCount = wc;
+  }
+
+  state.isGenerating = true;
+
+  // Hide empty state, show skeleton
+  document.getElementById('content-empty').style.display = 'none';
+  document.getElementById('gen-content').classList.remove('visible');
+  document.getElementById('gen-skeleton').classList.add('visible');
+  document.getElementById('btn-copy').style.display = 'none';
+  document.getElementById('btn-regen').style.display = 'none';
+
+  const delay = state.outputMode === 'detailed' ? 2200 : 1500;
+
+  setTimeout(() => {
+    document.getElementById('gen-skeleton').classList.remove('visible');
+    const content = buildContent();
+    streamContent(content);
+  }, delay);
+}
+
+function buildContent() {
+  const book = state.selectedBook;
+  const mode = state.outputMode;
+  const selectedIds = Array.from(state.selectedChapters);
+
+  // Get all nodes (chapters + sections)
+  const allNodes = [];
+  book.outline.forEach(ch => {
+    allNodes.push(ch);
+    (ch.children || []).forEach(sec => allNodes.push(sec));
+  });
+
+  const selectedNodes = allNodes.filter(n => selectedIds.includes(n.id));
+
+  if (mode === 'insights') {
+    // F16: Knowledge insights
+    const style = state.insightStyleCustom || state.insightStyle;
+    return CONTENT_MOCK.insights.template(selectedNodes, style, state.insightWordCount);
+  }
+
+  // F09/F10/F11: Brief or detailed
+  const contentLib = mode === 'brief' ? CONTENT_MOCK.brief : CONTENT_MOCK.detailed;
+  const parts = [];
+
+  // F11: Multi-chapter combined output
+  selectedNodes.forEach(node => {
+    const content = contentLib[node.id];
+    if (content) {
+      parts.push(content);
+    } else {
+      // Fallback content
+      parts.push(`### ${node.title}\n\n${mode === 'brief'
+        ? `本章节的核心要点：\n\n- **核心概念**：${node.title} 探讨了该领域中的重要理论与实践方法\n- **关键启示**：通过对比分析，作者揭示了常见误区并提供了改进路径\n- **应用价值**：这些内容在实际工作与学习中具有直接的指导意义`
+        : `本章围绕 **${node.title}** 展开详细论述。\n\n作者从历史演进的角度切入，系统梳理了该主题的理论脉络。核心论点建立在扎实的实证研究基础上，通过多个典型案例阐释了理论框架的适用范围。\n\n读者在理解这一章时，需要特别注意核心概念之间的关联结构，以及作者如何在不同情境中运用同一分析工具解决差异化的问题。这种方法论的统一性，是本书最具价值的地方之一。`
+      }`);
+    }
+  });
+
+  return parts.join('\n\n---\n\n');
+}
+
+// F19: Streaming typewriter effect
+function streamContent(rawText) {
+  const book = state.selectedBook;
+  const mode = state.outputMode;
+  const selectedIds = Array.from(state.selectedChapters);
+
+  // Set header info
+  const modeBadge = document.getElementById('gen-mode-badge');
+  const modeLabels = { brief: '缩略内容', detailed: '详细内容', insights: '知识心得' };
+  const modeClasses = { brief: 'brief', detailed: 'detailed', insights: 'insights' };
+  modeBadge.textContent = modeLabels[mode];
+  modeBadge.className = 'gen-mode-badge ' + modeClasses[mode];
+
+  // Chapter label
+  const allNodes = [];
+  book.outline.forEach(ch => {
+    allNodes.push(ch);
+    (ch.children || []).forEach(sec => allNodes.push(sec));
+  });
+  const selNodes = allNodes.filter(n => selectedIds.includes(n.id));
+  document.getElementById('gen-chapters-label').textContent =
+    selNodes.length === 1 ? selNodes[0].title : `${selNodes.length} 个章节`;
+
+  // Params label (insights mode)
+  const params = document.getElementById('gen-params-label');
+  if (mode === 'insights') {
+    params.textContent = `${state.insightStyleCustom || state.insightStyle} · ${state.insightWordCount}字`;
+  } else {
+    params.textContent = '';
+  }
+
+  document.getElementById('gen-content').classList.add('visible');
+  const bodyEl = document.getElementById('gen-body');
+  bodyEl.innerHTML = '<span class="cursor-blink"></span>';
+
+  // Simple markdown → HTML (basic)
+  const lines = rawText.split('\n');
+  let htmlParts = [];
+  let i = 0;
+
+  function processLine(line) {
+    if (line.startsWith('### ')) return `<h3>${mdInline(line.slice(4))}</h3>`;
+    if (line.startsWith('## '))  return `<h3>${mdInline(line.slice(3))}</h3>`;
+    if (line.startsWith('# '))   return `<h3>${mdInline(line.slice(2))}</h3>`;
+    if (line.startsWith('- '))   return `<li>${mdInline(line.slice(2))}</li>`;
+    if (line.match(/^\d+\. /))   return `<li>${mdInline(line.replace(/^\d+\. /, ''))}</li>`;
+    if (line === '---') return '<hr style="border-color:var(--border);margin:16px 0">';
+    if (line === '') return '';
+    return `<p>${mdInline(line)}</p>`;
+  }
+
+  function mdInline(t) {
+    return t
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code style="background:var(--s3);padding:1px 5px;border-radius:3px;font-size:.9em">$1</code>');
+  }
+
+  let htmlResult = lines.map(processLine).join('\n');
+  // Wrap consecutive <li> in <ul>
+  htmlResult = htmlResult.replace(/((<li>.*?<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // Stream character by character
+  const fullHTML = htmlResult;
+  let displayHTML = '';
+  const words = fullHTML.split(/(?<=[ >])/); // split by word boundaries
+  let wordIdx = 0;
+
+  function streamNext() {
+    if (wordIdx >= words.length) {
+      // Done
+      bodyEl.innerHTML = displayHTML;
+      state.isGenerating = false;
+      state.generatedContent = rawText;
+      state.generatedRawText = rawText;
+      document.getElementById('btn-copy').style.display = 'inline-flex';
+      document.getElementById('btn-regen').style.display = 'inline-flex';
+      // F22: Save to history
+      saveGenerationHistory(rawText);
+      renderHistoryPanel();
+      return;
+    }
+    const chunk = words.slice(wordIdx, wordIdx + 3).join('');
+    displayHTML += chunk;
+    wordIdx += 3;
+    bodyEl.innerHTML = displayHTML + '<span class="cursor-blink"></span>';
+    const speed = Math.random() * 12 + 6;
+    setTimeout(streamNext, speed);
+  }
+
+  streamNext();
+}
+
+/* ===================================================================
+   F14/F15 INSIGHTS PARAMS
+=================================================================== */
+function selectStyle(el, style) {
+  document.querySelectorAll('.style-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  state.insightStyle = style;
+  state.insightStyleCustom = '';
+  document.getElementById('style-custom').value = '';
+}
+
+function onCustomStyleInput(el) {
+  state.insightStyleCustom = el.value;
+  if (el.value) {
+    document.querySelectorAll('.style-pill').forEach(p => p.classList.remove('active'));
+  }
+}
+
+function validateWordCount(el) {
+  const v = parseInt(el.value);
+  const errEl = document.getElementById('wc-error');
+  if (isNaN(v) || v < 100 || v > 3000) {
+    errEl.style.display = 'block';
+  } else {
+    errEl.style.display = 'none';
+    state.insightWordCount = v;
+  }
+}
+
+/* ===================================================================
+   F12/F17 REGENERATE
+=================================================================== */
+function regenerate() {
+  if (state.isGenerating) return;
+  state.generatedContent = '';
+  generateContent();
+}
+
+/* ===================================================================
+   F18 COPY
+=================================================================== */
+function copyContent() {
+  if (!state.generatedRawText && !state.generatedContent) {
+    showToast('暂无内容可复制');
+    return;
+  }
+  const text = state.generatedRawText || state.generatedContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('✓ 已复制到剪贴板（Markdown 格式）');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✓ 已复制到剪贴板');
+  });
+}
+
+/* ===================================================================
+   F21/F22/F23 PERSISTENCE
+=================================================================== */
+function addToHistory(book) {
+  let books = state.historyBooks.filter(b => b.id !== book.id);
+  books.unshift({ id: book.id, title: book.title, author: book.author, color: book.color, category: book.category, lastAccess: Date.now() });
+  books = books.slice(0, 12); // max 12
+  state.historyBooks = books;
+  localStorage.setItem('zhidu_books', JSON.stringify(books));
+  renderHistoryGrid();
+}
+
+function renderHistoryGrid() {
+  const grid = document.getElementById('history-grid');
+  if (!grid) return;
+  const books = state.historyBooks;
+  if (books.length === 0) {
+    grid.innerHTML = '<div class="history-empty">暂无阅读记录，搜索一本书开始吧</div>';
+    return;
+  }
+  grid.innerHTML = books.map(b => `
+    <div class="history-card" onclick="openHistoryBook('${b.id}')">
+      <div class="history-card-cover" style="background:${b.color}">${b.title[0]}</div>
+      <div class="history-card-title">${b.title}</div>
+      <div class="history-card-meta">${b.category} · ${timeAgo(b.lastAccess)}</div>
+    </div>
+  `).join('');
+}
+
+function openHistoryBook(bookId) {
+  const book = BOOKS.find(b => b.id === bookId);
+  if (book) openBook(book);
+}
+
+function saveGenerationHistory(content) {
+  const book = state.selectedBook;
+  const key = book.id;
+  const history = state.generationHistory[key] || [];
+  history.unshift({
+    mode: state.outputMode,
+    style: state.outputMode === 'insights' ? (state.insightStyleCustom || state.insightStyle) : null,
+    wordCount: state.outputMode === 'insights' ? state.insightWordCount : null,
+    chapters: Array.from(state.selectedChapters),
+    content: content,
+    time: Date.now(),
+  });
+  state.generationHistory[key] = history.slice(0, 20);
+  localStorage.setItem('zhidu_gen_history', JSON.stringify(state.generationHistory));
+}
+
+function loadHistoryContent(book) {
+  const history = state.generationHistory[book.id];
+  if (history && history.length > 0) {
+    renderHistoryPanel();
+  }
+}
+
+function renderHistoryPanel() {
+  const book = state.selectedBook;
+  const history = (state.generationHistory[book.id] || []);
+  const panel = document.getElementById('history-panel');
+  const body = document.getElementById('history-panel-body');
+
+  if (history.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  const modeLabels = { brief: '缩略内容', detailed: '详细内容', insights: '知识心得' };
+
+  body.innerHTML = history.slice(0, 8).map((h, i) => {
+    const modeLabel = modeLabels[h.mode] || h.mode;
+    const params = h.style ? ` · ${h.style} · ${h.wordCount}字` : '';
+    const preview = h.content.replace(/[#*\-_`]/g, '').slice(0, 60) + '…';
+    return `
+      <div class="history-item" onclick="loadHistoryItem(${i})">
+        <div class="history-item-left">
+          <div class="history-item-mode">${modeLabel}${params}</div>
+          <div class="history-item-preview">${preview}</div>
+        </div>
+        <div class="history-item-time">${timeAgo(h.time)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function loadHistoryItem(index) {
+  const book = state.selectedBook;
+  const history = state.generationHistory[book.id] || [];
+  const item = history[index];
+  if (!item) return;
+
+  state.generatedContent = item.content;
+  state.generatedRawText = item.content;
+  state.outputMode = item.mode;
+
+  // Restore selected chapters
+  state.selectedChapters = new Set(item.chapters);
+  updateCheckboxUI();
+  updateSelectCount();
+
+  // Switch tab
+  ['brief', 'detailed', 'insights'].forEach(m => {
+    document.getElementById('tab-' + m).classList.toggle('active', m === item.mode);
+  });
+
+  // Show insights panel if needed
+  document.getElementById('insights-panel').classList.toggle('visible', item.mode === 'insights');
+
+  // Stream the content
+  document.getElementById('content-empty').style.display = 'none';
+  document.getElementById('gen-skeleton').classList.remove('visible');
+  streamContent(item.content);
+  showToast('已加载历史记录');
+}
+
+function toggleHistoryPanel() {
+  const body = document.getElementById('history-panel-body');
+  const chevron = document.getElementById('history-chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chevron.style.transform = !isOpen ? 'rotate(180deg)' : '';
+}
+
+/* ===================================================================
+   F25 MOBILE SIDEBAR
+=================================================================== */
+function openMobileSidebar() {
+  document.getElementById('outline-sidebar').classList.add('mobile-open');
+  document.getElementById('sidebar-overlay').classList.add('visible');
+}
+function closeMobileSidebar() {
+  document.getElementById('outline-sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('visible');
+}
+
+/* ===================================================================
+   UTILITIES
+=================================================================== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
+  return Math.floor(diff / 86400000) + ' 天前';
+}
+
+/* ===================================================================
+   INIT
+=================================================================== */
+(function init() {
+  showScreen('home');
+  renderHistoryGrid();
+
+  // Mobile outline: auto-close on content click
+  document.getElementById('content-main').addEventListener('click', () => {
+    if (window.innerWidth <= 768) closeMobileSidebar();
+  });
+
+  // Tab: auto-generate when chapters already selected and tab changes
+  // (handled in switchTab)
+})();
+</script>
+</body>
+</html>
