@@ -13,13 +13,12 @@ RUN bun install --frozen-lockfile
 COPY . .
 
 ENV NODE_ENV=production
-ENV PORT=3101
+ENV SERVER_PORT=3101
 ENV WEB_PORT=8080
 ENV VITE_API_BASE=/api
-ENV VITE_PROXY_TARGET=http://127.0.0.1:3101
 
 RUN bun run --filter @zhidu/web build
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "bun run --filter @zhidu/server start & SERVER_PID=$!; bun run --filter @zhidu/web preview -- --host 0.0.0.0 --port ${WEB_PORT}; EXIT_CODE=$?; kill ${SERVER_PID}; wait ${SERVER_PID} 2>/dev/null; exit ${EXIT_CODE}"]
+CMD ["sh", "-c", "SERVER_PORT=${SERVER_PORT:-3101}; WEB_PORT=${WEB_PORT:-8080}; VITE_PROXY_TARGET=${VITE_PROXY_TARGET:-http://127.0.0.1:${SERVER_PORT}}; PORT=${SERVER_PORT} bun run --filter @zhidu/server start & SERVER_PID=$!; VITE_PROXY_TARGET=${VITE_PROXY_TARGET} bun run --filter @zhidu/web preview -- --host 0.0.0.0 --port ${WEB_PORT}; EXIT_CODE=$?; kill ${SERVER_PID}; wait ${SERVER_PID} 2>/dev/null; exit ${EXIT_CODE}"]
