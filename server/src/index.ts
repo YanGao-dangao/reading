@@ -53,7 +53,8 @@ function badRequest(message: string): Response {
 }
 
 async function issueDevToken(): Promise<Response> {
-  if (envConfig.nodeEnv === "production") {
+  const allowInProd = process.env.ALLOW_DEV_TOKEN === "true";
+  if (envConfig.nodeEnv === "production" && !allowInProd) {
     return Response.json(
       { code: "FORBIDDEN", message: "Disabled in production" },
       { status: 403 },

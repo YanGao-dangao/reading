@@ -144,8 +144,12 @@ export async function createGenerationJob(
 }
 
 export function getStreamUrl(relativePath: string): string {
-  const base = import.meta.env.VITE_API_BASE ?? "http://localhost:3101";
-  return `${base}${relativePath}`;
+  if (relativePath.startsWith("http://") || relativePath.startsWith("https://")) {
+    return relativePath;
+  }
+  const base = (import.meta.env.VITE_API_BASE ?? "http://localhost:3101").replace(/\/$/, "");
+  const path = relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
+  return `${base}${path}`;
 }
 
 export async function* streamGeneration(
@@ -156,6 +160,10 @@ export async function* streamGeneration(
   const res = await fetch(fullUrl, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => res.statusText);
+    throw new Error(`Stream 请求失败 (${res.status}): ${msg || res.statusText}`);
+  }
   if (!res.body) throw new Error("No body");
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
