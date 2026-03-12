@@ -1,0 +1,17 @@
+{
+  "name": "@zhidu/monorepo",
+  "private": true,
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "sh -c 'SERVER_PORT=${SERVER_PORT:-3101}; WEB_PORT=${WEB_PORT:-5173}; VITE_PROXY_TARGET=${VITE_PROXY_TARGET:-http://127.0.0.1:${SERVER_PORT}}; PORT=${SERVER_PORT} bun run --filter @zhidu/server dev & SERVER_PID=$!; VITE_PROXY_TARGET=${VITE_PROXY_TARGET} bun run --filter @zhidu/web dev -- --host 0.0.0.0 --port ${WEB_PORT}; EXIT_CODE=$?; kill ${SERVER_PID}; wait ${SERVER_PID} 2>/dev/null; exit ${EXIT_CODE}'",
+    "dev:web": "bun run --filter @zhidu/web dev",
+    "dev:server": "bun run --filter @zhidu/server dev",
+    "start": "sh -c 'SERVER_PORT=${SERVER_PORT:-3101}; WEB_PORT=${WEB_PORT:-8080}; VITE_PROXY_TARGET=${VITE_PROXY_TARGET:-http://127.0.0.1:${SERVER_PORT}}; PORT=${SERVER_PORT} bun run --filter @zhidu/server start & SERVER_PID=$!; VITE_PROXY_TARGET=${VITE_PROXY_TARGET} bun run --filter @zhidu/web preview -- --host 0.0.0.0 --port ${WEB_PORT}; EXIT_CODE=$?; kill ${SERVER_PID}; wait ${SERVER_PID} 2>/dev/null; exit ${EXIT_CODE}'",
+    "build": "bun run --filter @zhidu/web build",
+    "build:web": "bun run --filter @zhidu/web build",
+    "lint:web": "bun run --filter @zhidu/web lint"
+  }
+}

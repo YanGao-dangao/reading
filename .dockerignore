@@ -1,0 +1,12 @@
+.git
+.cursor
+.vscode
+.idea
+node_modules
+**/node_modules
+**/dist
+**/dist-ssr
+*.log
+.DS_Store
+agent-transcripts
+原型
