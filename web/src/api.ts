@@ -38,8 +38,13 @@ export interface OutlineRecord {
   updatedAt: string;
 }
 
+function getApiBase(): string {
+  const raw = import.meta.env.VITE_API_BASE ?? "http://localhost:3101";
+  return raw.replace(/\/api\/?$/, "").replace(/\/$/, "");
+}
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE ?? "http://localhost:3101",
+  baseURL: getApiBase(),
   timeout: 15000,
 });
 
@@ -147,7 +152,7 @@ export function getStreamUrl(relativePath: string): string {
   if (relativePath.startsWith("http://") || relativePath.startsWith("https://")) {
     return relativePath;
   }
-  const base = (import.meta.env.VITE_API_BASE ?? "http://localhost:3101").replace(/\/$/, "");
+  const base = getApiBase();
   const path = relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
   return `${base}${path}`;
 }
